@@ -1,7 +1,6 @@
 "use strict";
 
 const fetch = require('node-fetch');
-
 const OUTPUT_FILE = "../data/pinus-contorta-48934.csv";
 
 var page = 0;
@@ -12,7 +11,7 @@ doIt();
 function doIt()
 {
     page++;
-    fetch("https://api.inaturalist.org/v1/observations/?taxon_id=48934&has[]=geo&order_by=observed_on&page="+page+"&per_page=200")
+    fetch("https://api.inaturalist.org/v1/observations/?taxon_id=48934&has[]=geo&order_by=observed_on&per_page=200&page="+page)
         .then(res => res.text())
         .then(
             function(body) {
