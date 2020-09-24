@@ -46,6 +46,13 @@ function converter(result)
         lat: result.location ? result.location.split(",")[0] : null,
         lon: result.location ? result.location.split(",")[1] : null,
         place_guess: result.place_guess,
-        photo: result.photos.length ? result.photos[0].url : null
+        photo: result.photos.length ? processPhotoURL(result.photos[0].url) : null
     };
+    function processPhotoURL(URL)
+    {
+        // derives the medium photo url from the give square one.
+        var parts = URL.split("/");
+        var extension = parts.pop().split("?").shift().split(".").pop();
+        return parts.join("/")+"/medium."+extension;
+    }
 }
