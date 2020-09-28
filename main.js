@@ -46,7 +46,8 @@ function converter(result)
         lat: result.location ? result.location.split(",")[0] : null,
         lon: result.location ? result.location.split(",")[1] : null,
         place_guess: result.place_guess,
-        photo: result.photos.length ? processPhotoURL(result.photos[0].url) : null
+        photo: result.photos.length ? processPhotoURL(result.photos[0].url) : null,
+        page: result.uri
     };
     function processPhotoURL(URL)
     {
