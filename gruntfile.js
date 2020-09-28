@@ -7,13 +7,13 @@ module.exports = function (grunt) {
   grunt.initConfig({
     jshint: {
       build: [
-        'main.js'
+        '*.js'
       ],
       options: {jshintrc: '.jshintrc', ignores:[]}
     },
     watch: {
       scripts: {
-        files: ['main.js'],
+        files: ['*.js'],
         tasks: ['jshint'],
         options: {
           livereload: true
