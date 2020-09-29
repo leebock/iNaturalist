@@ -7,39 +7,54 @@
   		process.exit(1);
   	}
 
+	var TOKEN;
   	const SERVICE_URL = process.argv[2];
 
-	console.log("Purging "+SERVICE_URL+" ...");
-
+	const fs = require('fs');
 	const request = require('request');
 
 	var _objectIDs;
 
-	request(
-		SERVICE_URL+"/query"+
-		"?where="+encodeURIComponent("1 = 1")+
-		"&returnIdsOnly=true"+
-		"&f=pjson",		
-		{json: true}, 
-		(error, response, body) => {
-
-			if (error) { 
-				return console.log(error); 
+    fs.readFile("token.json", (err, content) => {
+		console.log(content);
+		TOKEN = JSON.parse(content).token;
+		console.log("Purging "+SERVICE_URL+" ...");
+		getCount(
+			function() {
+				// begin the purge
+				console.log("Commence purge.");				
+				doNext();
 			}
+		);
+    });
 
-			_objectIDs = body.objectIds;
-
-			if (!_objectIDs.length) {
-				console.log("Feature service is already empty.");
-				process.exit(0);
+	function getCount(callBack)
+	{
+		request(
+			SERVICE_URL+"/query"+
+			"?where="+encodeURIComponent("1 = 1")+
+			"&returnIdsOnly=true"+
+			"&token="+TOKEN+
+			"&f=pjson",		
+			{json: true}, 
+			(error, response, body) => {
+	
+				if (error) { 
+					return console.log(error); 
+				}
+	
+				_objectIDs = body.objectIds;
+	
+				if (!_objectIDs.length) {
+					console.log("Feature service is already empty.");
+					process.exit(0);
+				}
+	
+				callBack();
+	
 			}
-
-			// begin the purge
-			console.log("Commence purge.");
-			doNext();
-
-		}
-	);	
+		);		
+	}
 
 	function doNext()
 	{
@@ -52,6 +67,7 @@
 				uri: SERVICE_URL+"/deleteFeatures",
 				form: {
 					f:"pjson",
+					token: TOKEN,
 					objectIds: _objectIDs.splice(0, 100).join(","),
 					rollbackOnFailure:false
 				}
