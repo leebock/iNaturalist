@@ -4,6 +4,7 @@
 
 	const https = require("https");
 	const querystring = require("querystring");
+	const fs = require("fs");
 
   	if (process.argv.length !== 4) {
   		console.log("Usage: " + __filename + " input_file service");
@@ -12,54 +13,52 @@
 
 	const FILE = process.argv[2];
 	const SERVICE_URL = process.argv[3];
-
-	console.log("Loading "+SERVICE_URL+" ...");
+	var TOKEN;
 
 	var _records = [];
-
-	require('csvtojson')()
-		.fromFile(FILE)
-		.on('data',(data)=>{
-		    //data is a buffer object
-		    _records.push(JSON.parse(data.toString('utf8')));
-		})
-		.on(
-			"done", 
-			function(error) {
-				console.log("Processing", _records.length, "incidents...");
-				console.log("***********************************************");
-				write();
-			}
-		);
-
+	
+	fs.readFile("token.json", (err, content) => {
+		TOKEN = JSON.parse(content).token;
+		require('csvtojson')()
+			.fromFile(FILE)
+			.on('data',(data)=>{
+			    //data is a buffer object
+			    _records.push(JSON.parse(data.toString('utf8')));
+			})
+			.on(
+				"done", 
+				function(error) {
+					console.log("***********************************************");
+					console.log("Loading "+SERVICE_URL+" ...");
+					console.log("Processing", _records.length, "incidents...");
+					console.log("***********************************************");
+					write();
+				}
+			);
+    });
+	
 	function write()
 	{
-		var bucket = _records
-					.splice(0, 100)
-					.map(
-						function(value) {
-							return {
-								attributes: 
-								Object.keys(value).reduce(
-									function(accumulator, key){accumulator[key.replace("-","_")] = value[key]; return accumulator;},
-									{}
-								)
-							};
-						}
-					);
-
+		var bucket = _records.splice(0, 100).map(
+			function(json) {
+				return {
+					geometry: {x: json.x, y: json.y},
+					spatialReference: {wkid: 4326},
+					attributes: json
+				};
+			}
+		);
 		var postData = {
 			features:JSON.stringify(bucket),
 			f:"pjson"
-		}; 
+		};
 		
 		postData = querystring.stringify(postData);
-
 		var options = {
 			hostname: "services.arcgis.com",
 			method: "POST",
 			port: 443,
-			path: SERVICE_URL+"/addFeatures",
+			path: SERVICE_URL+"/addFeatures"+"?token="+TOKEN,
 			headers:{"Content-Type": "application/x-www-form-urlencoded","Content-Length": postData.length}
 		};
 
