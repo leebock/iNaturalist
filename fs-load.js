@@ -43,7 +43,7 @@
 			function(json) {
 				return {
 					geometry: {x: json.x, y: json.y},
-					spatialReference: {wkid: 4326},
+					spatialReference: {wkid: 102100},
 					attributes: json
 				};
 			}
