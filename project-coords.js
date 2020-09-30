@@ -3,8 +3,13 @@ const querystring = require("querystring");
 
 const GEOMETRY_SERVICE = "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer";
 
-const IN_FILE = "../data/pinus-contorta-48934.csv";
-const OUT_FILE = "../data/pinus-contorta-48934.csv";
+if (process.argv.length !== 4) {
+	console.log("Usage: " + __filename + " input_file output_file");
+	process.exit(-1);
+}
+
+const IN_FILE = process.argv[2];
+const OUT_FILE = process.argv[3];
 
 var _records = [];
 var _counter = 0;
