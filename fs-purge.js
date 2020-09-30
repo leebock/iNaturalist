@@ -16,7 +16,6 @@
 	var _objectIDs;
 
     fs.readFile("token.json", (err, content) => {
-		console.log(content);
 		TOKEN = JSON.parse(content).token;
 		console.log("Purging "+SERVICE_URL+" ...");
 		getCount(
