@@ -29,7 +29,9 @@ function doIt()
     project(
         record.lon, record.lat, 
         function(obj) {
-            console.log(_counter, obj.x, obj.y);
+			process.stdout.clearLine();  // clear current text
+			process.stdout.cursorTo(0);  // move cursor to beginning of line
+			process.stdout.write("Processing record "+_counter+" of "+_records.length);
             record.x = obj.x;
             record.y = obj.y;
             _counter++;

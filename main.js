@@ -17,7 +17,9 @@ function doIt()
             function(body) {
                 var json = JSON.parse(body);
                 records = records.concat(json.results.map(converter));
-                console.log(records.length, " of ", json.total_results);
+                process.stdout.clearLine();  // clear current text
+    			process.stdout.cursorTo(0);  // move cursor to beginning of line
+    			process.stdout.write("Processing "+records.length+" of "+json.total_results);
                 if (records.length < json.total_results) {
                     doIt();
                 } else {
