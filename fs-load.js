@@ -15,7 +15,13 @@
 	const SERVICE_URL = process.argv[3];
 	var TOKEN;
 
+	console.log("----------------------------------------------------");
+	console.log("Loading records into feature service...");
+	console.log("Input file: "+FILE);
+	console.log("Service URL: "+SERVICE_URL);
+
 	var _records = [];
+	var _totalRecs;
 	
 	fs.readFile("token.json", (err, content) => {
 		TOKEN = JSON.parse(content).token;
@@ -28,10 +34,8 @@
 			.on(
 				"done", 
 				function(error) {
-					console.log("***********************************************");
-					console.log("Loading "+SERVICE_URL+" ...");
-					console.log("Processing", _records.length, "incidents...");
-					console.log("***********************************************");
+					_totalRecs = _records.length;
+					console.log("Processing", _totalRecs, "records...");
 					write();
 				}
 			);
@@ -76,13 +80,14 @@
 				) {
 					process.stdout.clearLine();  // clear current text
 					process.stdout.cursorTo(0);  // move cursor to beginning of line
-					process.stdout.write("good so far "+_records.length);
+					process.stdout.write("Progress: "+(100-parseInt((_records.length/_totalRecs)*100))+"%");
 					if (_records.length) {
 						write();
 					} else {
 						// log success
 						console.log("");
-						console.log("done");
+						console.log("Success!");
+						console.log("----------------------------------------------------");
 					}
 				} else {
 					console.log("");

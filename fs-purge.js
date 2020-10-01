@@ -4,24 +4,29 @@
 
   	if (process.argv.length !== 3) {
   		console.log("Usage: " + __filename + " service");
-  		process.exit(1);
+  		process.exit(-1);
   	}
 
 	var TOKEN;
   	const SERVICE_URL = process.argv[2];
 
+	console.log("----------------------------------------------------");
+	console.log("Purging records from feature service...");
+	console.log("Service URL: "+SERVICE_URL);
+
+
 	const fs = require('fs');
 	const request = require('request');
 
 	var _objectIDs;
+	var _totalRecs;
 
     fs.readFile("token.json", (err, content) => {
 		TOKEN = JSON.parse(content).token;
-		console.log("Purging "+SERVICE_URL+" ...");
 		getCount(
 			function() {
 				// begin the purge
-				console.log("Commence purge.");				
+				console.log("Removing "+_totalRecs+" records...");
 				doNext();
 			}
 		);
@@ -43,9 +48,11 @@
 				}
 	
 				_objectIDs = body.objectIds;
-	
+				_totalRecs = _objectIDs.length;
+				
 				if (!_objectIDs.length) {
 					console.log("Feature service is already empty.");
+					console.log("----------------------------------------------------");                                       
 					process.exit(0);
 				}
 	
@@ -84,15 +91,15 @@
 				} else {
 					process.stdout.clearLine();  // clear current text
 					process.stdout.cursorTo(0);  // move cursor to beginning of line
-					process.stdout.write("Good so far "+_objectIDs.length);				
+					process.stdout.write("Progress: "+(100-parseInt((_objectIDs.length/_totalRecs)*100))+"%");				
 				}
 
 				if (_objectIDs.length) {
 					doNext();
-				} else {
-					process.stdout.clearLine();  // clear current text
-					process.stdout.cursorTo(0);  // move cursor to beginning of line
-					process.stdout.write("Purge complete.");				
+				} else {					
+					console.log("");                    
+                    console.log("Success!");                                       
+                    console.log("----------------------------------------------------");                                       
 				}
 
 			}

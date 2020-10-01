@@ -11,6 +11,11 @@ if (process.argv.length !== 4) {
 const IN_FILE = process.argv[2];
 const OUT_FILE = process.argv[3];
 
+console.log("----------------------------------------------------");
+console.log("Projecting data points to web mercator...");
+console.log("Input file: "+IN_FILE);
+console.log("Output file: "+OUT_FILE);
+
 var _records = [];
 var _counter = 0;
 
@@ -23,7 +28,6 @@ require('csvtojson')()
 	.on(
 		"done", 
 		function(error) {
-            console.log(_records.length);
             doIt();
 		}
 	);
@@ -36,7 +40,7 @@ function doIt()
         function(obj) {
 			process.stdout.clearLine();  // clear current text
 			process.stdout.cursorTo(0);  // move cursor to beginning of line
-			process.stdout.write("Processing record "+_counter+" of "+_records.length);
+			process.stdout.write("Processing record "+(_counter+1)+" of "+_records.length);
             record.x = obj.x;
             record.y = obj.y;
             _counter++;
@@ -44,6 +48,9 @@ function doIt()
                 doIt();
             } else {
                 finish();
+				console.log("");
+				console.log("Success!");
+				console.log("----------------------------------------------------");
             }
         }
     );

@@ -1,7 +1,17 @@
 "use strict";
 
 const fetch = require('node-fetch');
-const OUTPUT_FILE = "../data/pinus-contorta-48934.csv";
+
+if (process.argv.length !== 3) {
+	console.log("Usage: " + __filename + " output_file");
+	process.exit(-1);
+}
+
+const OUTPUT_FILE = process.argv[2];
+
+console.log("----------------------------------------------------");
+console.log("Pulling data from iNaturalist API...");
+console.log("Output file: "+OUTPUT_FILE);
 
 var page = 0;
 var records = [];
@@ -32,7 +42,10 @@ function doIt()
                     			throw("error writing file!");
                     		}
                     	}
-                    ); /* writeFile */                    
+                    ); /* writeFile */ 
+                    console.log("");                    
+                    console.log("Success!");                                       
+                    console.log("----------------------------------------------------");                                       
                 }
             }
         );
