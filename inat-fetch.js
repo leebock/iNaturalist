@@ -8,6 +8,20 @@ if (process.argv.length !== 3) {
 }
 
 const OUTPUT_FILE = process.argv[2];
+const QUERY_STRING = createQueryString(
+	{
+		identified: true, /* necessary? */
+		hrank: "species", /* necessary? */
+		taxon_name: "pinus contorta", /* alternatively, "taxon_id: 48934", */
+		geo: true,
+		acc: true, /* redundant when using acc_below? */
+		acc_below: 1000,
+		photos: true,
+		quality_grade: "research",
+		order_by: "observed_on",
+		per_page: 200
+	}
+);
 
 console.log("----------------------------------------------------");
 console.log("Pulling data from iNaturalist API...");
@@ -20,8 +34,9 @@ doIt();
     
 function doIt()
 {
-    page++;
-    fetch("https://api.inaturalist.org/v1/observations/?taxon_id=48934&has[]=geo&order_by=observed_on&per_page=200&page="+page)
+	page++;
+	
+    fetch("https://api.inaturalist.org/v1/observations/?"+QUERY_STRING+"&page="+page)
         .then(res => res.text())
         .then(
             function(body) {
@@ -43,12 +58,12 @@ function doIt()
                     		}
                     	}
                     ); /* writeFile */ 
-                    console.log("");                    
+					console.log("");                    
                     console.log("Success!");                                       
                     console.log("----------------------------------------------------");                                       
                 }
             }
-        );
+		);
 }
 
 function converter(result)
@@ -61,6 +76,7 @@ function converter(result)
         lat: result.location ? result.location.split(",")[0] : null,
         lon: result.location ? result.location.split(",")[1] : null,
         place_guess: result.place_guess,
+		positional_accuracy: result.positional_accuracy,
         photo: result.photos.length ? processPhotoURL(result.photos[0].url) : null,
         page: result.uri
     };
@@ -71,4 +87,19 @@ function converter(result)
         var extension = parts.pop().split("?").shift().split(".").pop();
         return parts.join("/")+"/medium."+extension;
     }
+}
+
+function createQueryString(args)
+{
+	
+	// create query string
+
+	const list = [];
+	for (const property in args) {
+		if (args.hasOwnProperty(property)) {
+			list.push(`${property}=${args[property]}`);
+		}		
+	}
+	return list.join("&");
+		
 }
