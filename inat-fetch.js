@@ -48,6 +48,14 @@ function doIt()
                 if (records.length < json.total_results) {
                     doIt();
                 } else {
+
+					console.log("");                    
+					
+					/* eliminate obscured observations */
+					
+					records = records.filter(function(record){return !record.obscured;});
+					console.log("Reduced to", records.length, "records after filtering for obscured.");
+					
                     /* write to csv output file */
                     require("fs").writeFile(
                     	OUTPUT_FILE, 
@@ -58,7 +66,6 @@ function doIt()
                     		}
                     	}
                     ); /* writeFile */ 
-					console.log("");                    
                     console.log("Success!");                                       
                     console.log("----------------------------------------------------");                                       
                 }
