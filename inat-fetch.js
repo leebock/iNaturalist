@@ -69,7 +69,7 @@ function doIt()
 function converter(result)
 {
     return  {
-        id: result.id,
+        observation_id: result.id,
 		taxon_id: result.taxon.id,
 		taxon_name: result.taxon.name,
         quality_grade: result.quality_grade,
