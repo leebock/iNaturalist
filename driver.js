@@ -5,7 +5,7 @@ console.log();
 if (
     child_process.spawnSync(
         "node",
-        ["inat-fetch", "../data/pinus-contorta-48934.csv"],
+        ["inat-fetch", "../data/pinus-contorta.csv"],
         {stdio: "inherit"}
     )
     .status !== 0
@@ -19,7 +19,7 @@ console.log();
 if (
     child_process.spawnSync(
         "node",
-        ["project-coords", "../data/pinus-contorta-48934.csv", "temp-wm.csv"],
+        ["project-coords", "../data/pinus-contorta.csv", "temp-wm.csv"],
         {stdio: "inherit"}
     )
     .status !== 0    
