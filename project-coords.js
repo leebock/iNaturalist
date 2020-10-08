@@ -28,6 +28,7 @@ require('csvtojson')()
 	.on(
 		"done", 
 		function(error) {
+			console.log("Processing", _records.length, "records.");
             doIt();
 		}
 	);
@@ -40,7 +41,7 @@ function doIt()
         function(obj) {
 			process.stdout.clearLine();  // clear current text
 			process.stdout.cursorTo(0);  // move cursor to beginning of line
-			process.stdout.write("Processing record "+(_counter+1)+" of "+_records.length);
+			process.stdout.write("Progress: "+parseInt(( (_counter+1) / _records.length)*100)+"%");
             record.x = obj.x;
             record.y = obj.y;
             _counter++;
