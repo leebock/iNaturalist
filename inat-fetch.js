@@ -70,9 +70,13 @@ function converter(result)
 {
     return  {
         id: result.id,
+		taxon_id: result.taxon.id,
+		taxon_name: result.taxon.name,
         quality_grade: result.quality_grade,
         observation_date: result.observed_on,
-        mappable: result.mappable,
+		geoprivacy: result.geoprivacy,
+		taxon_geoprivacy: result.taxon_geoprivacy,
+		obscured: result.obscured,
         lat: result.location ? result.location.split(",")[0] : null,
         lon: result.location ? result.location.split(",")[1] : null,
         place_guess: result.place_guess,
