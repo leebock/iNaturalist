@@ -42,9 +42,12 @@ function doIt()
             function(body) {
                 var json = JSON.parse(body);
                 records = records.concat(json.results.map(converter));
+				if (page === 1) {
+					console.log("Pulling", json.total_results, "records...");
+				}
                 process.stdout.clearLine();  // clear current text
     			process.stdout.cursorTo(0);  // move cursor to beginning of line
-    			process.stdout.write("Processing "+records.length+" of "+json.total_results);
+				process.stdout.write("Progress: "+parseInt((records.length/json.total_results)*100)+"%");
                 if (records.length < json.total_results) {
                     doIt();
                 } else {
@@ -54,7 +57,7 @@ function doIt()
 					/* eliminate obscured observations */
 					
 					records = records.filter(function(record){return !record.obscured;});
-					console.log("Reduced to", records.length, "records after filtering for obscured.");
+					console.log("Reducing to", records.length, "records after filtering for obscured.");
 					
                     /* write to csv output file */
                     require("fs").writeFile(
