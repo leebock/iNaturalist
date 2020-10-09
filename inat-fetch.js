@@ -92,7 +92,8 @@ function converter(result)
         place_guess: result.place_guess,
 		positional_accuracy: result.positional_accuracy,
         photo: result.photos.length ? processPhotoURL(result.photos[0].url) : null,
-        page: result.uri
+        page: result.uri,
+		updated_at: result.updated_at
     };
     function processPhotoURL(URL)
     {
