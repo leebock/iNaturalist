@@ -2,17 +2,18 @@
 
 const fetch = require('node-fetch');
 
-if (process.argv.length !== 3) {
-	console.log("Usage: " + __filename + " output_file");
+if (process.argv.length !== 4) {
+	console.log("Usage: " + __filename + " <species> <output_file>");
 	process.exit(-1);
 }
 
-const OUTPUT_FILE = process.argv[2];
+const SPECIES = process.argv[2];
+const OUTPUT_FILE = process.argv[3];
 const QUERY_STRING = createQueryString(
 	{
 		identified: true, /* necessary? */
 		hrank: "species", /* necessary? */
-		taxon_name: "pinus contorta", /* alternatively, "taxon_id: 48934", */
+		taxon_name: SPECIES, /* e.g. "Pinus contorta" alternatively, "taxon_id: 48934", */
 		geo: true,
 		acc: true, /* redundant when using acc_below? */
 		acc_below: 1000,
@@ -25,6 +26,7 @@ const QUERY_STRING = createQueryString(
 
 console.log("----------------------------------------------------");
 console.log("Pulling data from iNaturalist API...");
+console.log("Species: "+SPECIES);
 console.log("Output file: "+OUTPUT_FILE);
 
 var page = 0;
