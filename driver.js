@@ -34,7 +34,7 @@ CONFIGS.forEach((config, i) => {
     if (
         child_process.spawnSync(
             "node",
-            ["project-coords", config.csv, "temp-wm.csv"],
+            ["project-coords", config.csv, "scratch/temp-wm.csv"],
             {stdio: "inherit"}
         )
         .status !== 0    
@@ -67,7 +67,7 @@ CONFIGS.forEach((config, i) => {
             "node",
             [
                 "fs-load", 
-                "temp-wm.csv",
+                "scratch/temp-wm.csv",
                 config.service
             ],
             {stdio: "inherit"}
