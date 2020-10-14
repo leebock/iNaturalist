@@ -16,7 +16,7 @@ const QUERY_STRING = createQueryString(
 		taxon_name: SPECIES, /* e.g. "Pinus contorta" alternatively, "taxon_id: 48934", */
 		geo: true,
 		acc: true, /* redundant when using acc_below? */
-		acc_below: 1000,
+		acc_below: 1001,
 		photos: true,
 		quality_grade: "research",
 		order_by: "observed_on",
