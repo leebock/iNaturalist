@@ -42,38 +42,55 @@ function doIt()
         .then(res => res.text())
         .then(
             function(body) {
-                var json = JSON.parse(body);
-                records = records.concat(json.results.map(converter));
-				if (page === 1) {
-					console.log("Pulling", json.total_results, "records...");
-				}
-                process.stdout.clearLine();  // clear current text
-    			process.stdout.cursorTo(0);  // move cursor to beginning of line
-				process.stdout.write("Progress: "+parseInt((records.length/json.total_results)*100)+"%");
-                if (records.length < json.total_results) {
-                    doIt();
-                } else {
 
-					console.log("");                    
-					
-					/* eliminate obscured observations */
-					
-					records = records.filter(function(record){return !record.obscured;});
-					console.log("Reducing to", records.length, "records after filtering for obscured.");
-					
-                    /* write to csv output file */
-                    require("fs").writeFile(
-                    	OUTPUT_FILE, 
-                    	require('json2csv').parse(records), 
-                    	(err) => {
-                    		if (err) {
-                    			throw("error writing file!");
-                    		}
-                    	}
-                    ); /* writeFile */ 
-                    console.log("Success!");                                       
-                    console.log("----------------------------------------------------");                                       
-                }
+				try {
+
+	                var json = JSON.parse(body);
+	                records = records.concat(json.results.map(converter));
+					if (page === 1) {
+						console.log("Pulling", json.total_results, "records...");
+					}
+	                process.stdout.clearLine();  // clear current text
+	    			process.stdout.cursorTo(0);  // move cursor to beginning of line
+					process.stdout.write(
+						"Progress: "+
+						parseInt((records.length/json.total_results)*100)+
+						"%"
+					);
+	                if (records.length < json.total_results) {
+	                    doIt();
+	                } else {
+
+						console.log("");                    
+						
+						/* eliminate obscured observations */
+						
+						records = records.filter(function(record){return !record.obscured;});
+						console.log(
+							"Reducing to", 
+							records.length, 
+							"records after filtering for obscured."
+						);
+						
+	                    /* write to csv output file */
+	                    require("fs").writeFile(
+	                    	OUTPUT_FILE, 
+	                    	require('json2csv').parse(records), 
+	                    	(err) => {
+	                    		if (err) {
+	                    			throw("error writing file!");
+	                    		}
+	                    	}
+	                    ); /* writeFile */ 
+	                    console.log("Success!");                                       
+	                    console.log("----------------------------------------------------");                                       
+	                }
+
+				} catch(err) {
+					console.log("error in inat-fetch!");
+					process.exit(-1);
+				}
+
             }
 		);
 }
