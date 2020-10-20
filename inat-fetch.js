@@ -72,10 +72,15 @@ function doIt()
 							"records after filtering for obscured."
 						);
 						
+						const fields = Object.keys(converter({}));
+						
 	                    /* write to csv output file */
 	                    require("fs").writeFile(
 	                    	OUTPUT_FILE, 
-	                    	require('json2csv').parse(records), 
+	                    	require('json2csv').parse(
+								records, 
+								records.length ? {} : {fields}
+							), 
 	                    	(err) => {
 	                    		if (err) {
 	                    			throw("error writing file!");
@@ -97,10 +102,11 @@ function doIt()
 
 function converter(result)
 {
+	/* convert the inaturalist data to flat csv friendly data */
     return  {
         observation_id: result.id,
-		taxon_id: result.taxon.id,
-		taxon_name: result.taxon.name,
+		taxon_id: result.taxon ? result.taxon.id : null,
+		taxon_name: result.taxon ? result.taxon.name : null,
         quality_grade: result.quality_grade,
         observation_date: result.observed_on,
 		geoprivacy: result.geoprivacy,
@@ -110,7 +116,9 @@ function converter(result)
         lon: result.location ? result.location.split(",")[1] : null,
         place_guess: result.place_guess,
 		positional_accuracy: result.positional_accuracy,
-        photo: result.photos.length ? processPhotoURL(result.photos[0].url) : null,
+        photo: result.photos ? 
+			result.photos.length ? processPhotoURL(result.photos[0].url) : null :
+			null,
         page: result.uri,
 		updated_at: result.updated_at
     };
