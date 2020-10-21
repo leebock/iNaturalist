@@ -22,7 +22,7 @@ const args = {
 	quality_grade: "research",
 	order_by: "observed_on",
 	per_page: 200
-}
+};
 
 if (NLAT) {
 	args.swlat = NLAT;
