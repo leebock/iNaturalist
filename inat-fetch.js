@@ -2,27 +2,36 @@
 
 const fetch = require('node-fetch');
 
-if (process.argv.length !== 4) {
-	console.log("Usage: " + __filename + " <species> <output_file>");
+if (process.argv.length < 4) {
+	console.log("Usage: " + __filename + " species output_file [nlat]");
 	process.exit(-1);
 }
 
 const SPECIES = process.argv[2];
 const OUTPUT_FILE = process.argv[3];
-const QUERY_STRING = createQueryString(
-	{
-		identified: true, /* necessary? */
-		hrank: "species", /* necessary? */
-		taxon_name: SPECIES, /* e.g. "Pinus contorta" alternatively, "taxon_id: 48934", */
-		geo: true,
-		acc: true, /* redundant when using acc_below? */
-		acc_below: 1001,
-		photos: true,
-		quality_grade: "research",
-		order_by: "observed_on",
-		per_page: 200
-	}
-);
+const NLAT = process.argv.length > 4 ? process.argv[4] : null;
+
+const args = {
+	identified: true, /* necessary? */
+	hrank: "species", /* necessary? */
+	taxon_name: SPECIES, /* e.g. "Pinus contorta" alternatively, "taxon_id: 48934", */
+	geo: true,
+	acc: true, /* redundant when using acc_below? */
+	acc_below: 1001,
+	photos: true,
+	quality_grade: "research",
+	order_by: "observed_on",
+	per_page: 200
+}
+
+if (NLAT) {
+	args.swlat = NLAT;
+	args.swlng = -180;
+	args.nelat = 90;
+	args.nelng = 180;
+}
+
+const QUERY_STRING = createQueryString(args);
 
 console.log("----------------------------------------------------");
 console.log("Pulling data from iNaturalist API...");
