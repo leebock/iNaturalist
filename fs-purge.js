@@ -7,30 +7,26 @@
   		process.exit(-1);
   	}
 
-	var TOKEN;
+	const fs = require('fs');
+	const request = require('request');
+
   	const SERVICE_URL = process.argv[2];
+	const TOKEN = JSON.parse(fs.readFileSync("token.json")).token;
 
 	console.log("----------------------------------------------------");
 	console.log("Purging records from feature service...");
 	console.log("Service URL: "+SERVICE_URL);
 
-
-	const fs = require('fs');
-	const request = require('request');
-
 	var _objectIDs;
 	var _totalRecs;
 
-    fs.readFile("token.json", (err, content) => {
-		TOKEN = JSON.parse(content).token;
-		getCount(
-			function() {
-				// begin the purge
-				console.log("Removing "+_totalRecs+" records...");
-				doNext();
-			}
-		);
-    });
+	getCount(
+		function() {
+			// begin the purge
+			console.log("Removing "+_totalRecs+" records...");
+			doNext();
+		}
+	);
 
 	function getCount(callBack)
 	{

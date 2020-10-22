@@ -13,7 +13,7 @@
 
 	const FILE = process.argv[2];
 	const SERVICE_URL = process.argv[3];
-	var TOKEN;
+	const TOKEN = JSON.parse(fs.readFileSync("token.json")).token;
 
 	console.log("----------------------------------------------------");
 	console.log("Loading records into feature service...");
@@ -23,23 +23,20 @@
 	var _records = [];
 	var _totalRecs;
 	
-	fs.readFile("token.json", (err, content) => {
-		TOKEN = JSON.parse(content).token;
-		require('csvtojson')()
-			.fromFile(FILE)
-			.on('data',(data)=>{
-			    //data is a buffer object
-			    _records.push(JSON.parse(data.toString('utf8')));
-			})
-			.on(
-				"done", 
-				function(error) {
-					_totalRecs = _records.length;
-					console.log("Processing", _totalRecs, "records...");
-					write();
-				}
-			);
-    });
+	require('csvtojson')()
+		.fromFile(FILE)
+		.on('data',(data)=>{
+			//data is a buffer object
+			_records.push(JSON.parse(data.toString('utf8')));
+		})
+		.on(
+			"done", 
+			function(error) {
+				_totalRecs = _records.length;
+				console.log("Processing", _totalRecs, "records...");
+				write();
+			}
+		);
 	
 	function write()
 	{
