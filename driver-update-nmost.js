@@ -80,7 +80,7 @@
             _records.sort(sortDescendingByLatitude);
             var winner = _records.shift();
             console.log(winner);
-            const geometry = await project(feature.attributes.lon, feature.attributes.lat);
+            const geometry = await project(winner.lon, winner.lat);
             await updateFeature(
                 {
                     geometry: geometry,
