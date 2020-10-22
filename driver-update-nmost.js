@@ -7,6 +7,7 @@
     const fs = require("fs");
     const querystring = require("querystring");  
     const chalk = require('chalk');  
+    const csv=require('csvtojson');
     
     const SERVICE = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/arcgis/rest/services/nmost/FeatureServer/0";
     const SERVICE_EDIT = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/ArcGIS/rest/services/nmost_edit/FeatureServer/0";
@@ -53,20 +54,8 @@
         process.exit();
     }
     
-    var _records = [];
-    
-    require('csvtojson')()
-    	.fromFile(SCRATCH_FILE)
-    	.on('data',(data)=>{
-    	    //data is a buffer object
-            _records.push(JSON.parse(data.toString('utf8')));
-    	})
-    	.on(
-    		"done", 
-    		function(error) {
-                finish();
-    		}
-    	);
+    var _records = await csv().fromFile(SCRATCH_FILE);
+    await finish();
         
     async function finish()
     {
