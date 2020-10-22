@@ -16,8 +16,13 @@
     
     const TOKEN = JSON.parse(fs.readFileSync("token.json")).token;
     
+    /*******************************************************************************
+    *********************************** MAIN ***************************************
+    *******************************************************************************/
+    
     const features = await getFeatures();
     const feature = features.shift();
+    
     if (!feature) {
         console.log("No features match query for pass", PASS, ".");
         process.exit(-1);
@@ -32,6 +37,8 @@
         feature.attributes.lat
     );
     console.log("----------------------------------------------------","\n");    
+
+    // find the new northmost record (if there is one)
 
     const SCRATCH_FILE = "scratch/"+
                         feature.attributes.taxon_name.toLowerCase().replace(" ", "-")+
@@ -55,70 +62,65 @@
     }
     
     var _records = await csv().fromFile(SCRATCH_FILE);
-    await finish();
-        
-    async function finish()
-    {
-        console.log("");
-        console.log("----------------------------------------------------");    
-        if (_records.length === 0) {
+    _records.sort(sortDescendingByLatitude);
+    var winner = _records.shift();
 
-            console.log("No records.");
-            // not much to do here; just update pass field and move on!
-            if (
-                await updateFeature(
-                    {attributes: {ObjectId: feature.attributes.ObjectId, pass: PASS}}
-                )
-            ) {
-                console.log("Update successful.");
-            } else {
-                console.log("Bad update.");
-            }
+    // update according to whether new winner was found
+        
+    console.log("");
+    console.log("----------------------------------------------------");    
+    if (!winner) {
+        console.log("Current record remains northmost.");
+        // not much to do here; just update pass field and move on!
+        console.log(
+            await updateFeature(
+                {attributes: {ObjectId: feature.attributes.ObjectId, pass: PASS}}
+            ) ? "Updated pass" : "Problem updating pass"
+        );
+    } else {
+        console.log(
+            "Found", 
+            chalk.cyan(winner.taxon_name), "at", 
+            parseFloat(winner.lat), 
+            "("+winner.place_guess+")"
+        );
+        const geometry = await project(winner.lon, winner.lat);
+        if (
+            await updateFeature(
+                {
+                    geometry: geometry,
+                    attributes: {
+                        ObjectId: feature.attributes.ObjectId, 
+                        pass: PASS,
+                        taxon_name: winner.taxon_name,
+                        generic_name: winner.generic_name,
+                        observer: "",
+                        observation_date: winner.observation_date,
+                        page: winner.page,
+                        lat: winner.lat,
+                        lon: winner.lon,
+                        positional_accuracy: winner.positional_accuracy,
+                        photo: winner.photo,
+                        photo_reference: "",
+                        created: "",
+                        creator: "", 
+                        license: "",
+                        rights_holder: "",
+                        observation_id: winner.observation_id                      
+                    } 
+                }
+            )
+        ) {
+            console.log("Update successful.");
         } else {
-            // find the new northmost and update
-            console.log("Sorting", _records.length, "records.");
-            _records.sort(sortDescendingByLatitude);
-            var winner = _records.shift();
-            console.log(
-                "Found", 
-                chalk.cyan(winner.taxon_name), "at", 
-                parseFloat(winner.lat), 
-                "("+winner.place_guess+")"
-            );
-            const geometry = await project(winner.lon, winner.lat);
-            if (
-                await updateFeature(
-                    {
-                        geometry: geometry,
-                        attributes: {
-                            ObjectId: feature.attributes.ObjectId, 
-                            pass: PASS,
-                            taxon_name: winner.taxon_name,
-                            generic_name: winner.generic_name,
-                            observer: "",
-                            observation_date: winner.observation_date,
-                            page: winner.page,
-                            lat: winner.lat,
-                            lon: winner.lon,
-                            positional_accuracy: winner.positional_accuracy,
-                            photo: winner.photo,
-                            photo_reference: "",
-                            created: "",
-                            creator: "", 
-                            license: "",
-                            rights_holder: "",
-                            observation_id: winner.observation_id                      
-                        } 
-                    }
-                )
-            ) {
-                console.log("Update successful.");
-            } else {
-                console.log("Bad update.");
-            }
-        } // if (_records.length === 0) {
-        console.log("----------------------------------------------------");        
-    }
+            console.log("Bad update.");
+        }
+    } // if (_records.length === 0) {
+    console.log("----------------------------------------------------");        
+
+    /*******************************************************************************
+    ********************************* FUNCTIONS ************************************
+    *******************************************************************************/
         
     function sortDescendingByLatitude(a,b)
     {
