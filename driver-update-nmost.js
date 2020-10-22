@@ -27,16 +27,8 @@
         console.log("No features match query for pass", PASS, ".");
         process.exit(-1);
     }
-
-    console.log("");
-    console.log("----------------------------------------------------");    
-    console.log(
-        "Searching for updates for", 
-        chalk.cyan(feature.attributes.taxon_name), 
-        "north of", 
-        feature.attributes.lat
-    );
-    console.log("----------------------------------------------------","\n");    
+    
+    message1(feature.attributes.taxon_name, feature.attributes.lat);
 
     // find the new northmost record (if there is one)
 
@@ -85,42 +77,57 @@
             "("+winner.place_guess+")"
         );
         const geometry = await project(winner.lon, winner.lat);
-        if (
+        console.log(
             await updateFeature(
                 {
                     geometry: geometry,
-                    attributes: {
-                        ObjectId: feature.attributes.ObjectId, 
-                        pass: PASS,
-                        taxon_name: winner.taxon_name,
-                        generic_name: winner.generic_name,
-                        observer: "",
-                        observation_date: winner.observation_date,
-                        page: winner.page,
-                        lat: winner.lat,
-                        lon: winner.lon,
-                        positional_accuracy: winner.positional_accuracy,
-                        photo: winner.photo,
-                        photo_reference: "",
-                        created: "",
-                        creator: "", 
-                        license: "",
-                        rights_holder: "",
-                        observation_id: winner.observation_id                      
-                    } 
+                    attributes: buildAtts(feature.attributes.ObjectId, PASS, winner) 
                 }
-            )
-        ) {
-            console.log("Update successful.");
-        } else {
-            console.log("Bad update.");
-        }
+            ) ?
+            "Updated observation" : "Problem updating observation"
+        );
     } // if (_records.length === 0) {
     console.log("----------------------------------------------------");        
 
     /*******************************************************************************
     ********************************* FUNCTIONS ************************************
     *******************************************************************************/
+    
+    function buildAtts(objectId, pass, northmost)
+    {
+        return {
+            ObjectId: objectId, 
+            pass: PASS,
+            taxon_name: northmost.taxon_name,
+            generic_name: northmost.generic_name,
+            observer: "",
+            observation_date: northmost.observation_date,
+            page: northmost.page,
+            lat: northmost.lat,
+            lon: northmost.lon,
+            positional_accuracy: northmost.positional_accuracy,
+            photo: northmost.photo,
+            photo_reference: "",
+            created: "",
+            creator: "", 
+            license: "",
+            rights_holder: "",
+            observation_id: northmost.observation_id                      
+        };        
+    }
+
+    function message1(species, latitude)
+    {        
+        console.log("");
+        console.log("----------------------------------------------------");    
+        console.log(
+            "Searching for updates for", 
+            chalk.cyan(species), 
+            "north of", 
+            latitude
+        );
+        console.log("----------------------------------------------------","\n");        
+    }
         
     function sortDescendingByLatitude(a,b)
     {
