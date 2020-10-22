@@ -5,7 +5,8 @@
     const fetch = require('node-fetch');
     const child_process = require("child_process");
     const fs = require("fs");
-    const querystring = require("querystring");    
+    const querystring = require("querystring");  
+    const chalk = require('chalk');  
     
     const SERVICE = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/arcgis/rest/services/nmost/FeatureServer/0";
     const SERVICE_EDIT = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/ArcGIS/rest/services/nmost_edit/FeatureServer/0";
@@ -20,8 +21,16 @@
         console.log("No features match query for pass", PASS, ".");
         process.exit(-1);
     }
-    
-    console.log(feature);
+
+    console.log("");
+    console.log("----------------------------------------------------");    
+    console.log(
+        "Searching for updates for", 
+        chalk.cyan(feature.attributes.taxon_name), 
+        "north of", 
+        feature.attributes.lat
+    );
+    console.log("----------------------------------------------------","\n");    
 
     const SCRATCH_FILE = "scratch/"+
                         feature.attributes.taxon_name.toLowerCase().replace(" ", "-")+
@@ -61,6 +70,8 @@
         
     async function finish()
     {
+        console.log("");
+        console.log("----------------------------------------------------");    
         if (_records.length === 0) {
 
             console.log("No records.");
@@ -79,33 +90,45 @@
             console.log("Sorting", _records.length, "records.");
             _records.sort(sortDescendingByLatitude);
             var winner = _records.shift();
-            console.log(winner);
-            const geometry = await project(winner.lon, winner.lat);
-            await updateFeature(
-                {
-                    geometry: geometry,
-                    attributes: {
-                        ObjectId: feature.attributes.ObjectId, 
-                        pass: PASS,
-                        taxon_name: winner.taxon_name,
-                        generic_name: winner.generic_name,
-                        observer: "",
-                        observation_date: winner.observation_date,
-                        page: winner.page,
-                        lat: winner.lat,
-                        lon: winner.lon,
-                        positional_accuracy: winner.positional_accuracy,
-                        photo: winner.photo,
-                        photo_reference: "",
-                        created: "",
-                        creator: "", 
-                        license: "",
-                        rights_holder: "",
-                        observation_id: winner.observation_id                      
-                    } 
-                }
+            console.log(
+                "Found", 
+                chalk.cyan(winner.taxon_name), "at", 
+                parseFloat(winner.lat), 
+                "("+winner.place_guess+")"
             );
-        }
+            const geometry = await project(winner.lon, winner.lat);
+            if (
+                await updateFeature(
+                    {
+                        geometry: geometry,
+                        attributes: {
+                            ObjectId: feature.attributes.ObjectId, 
+                            pass: PASS,
+                            taxon_name: winner.taxon_name,
+                            generic_name: winner.generic_name,
+                            observer: "",
+                            observation_date: winner.observation_date,
+                            page: winner.page,
+                            lat: winner.lat,
+                            lon: winner.lon,
+                            positional_accuracy: winner.positional_accuracy,
+                            photo: winner.photo,
+                            photo_reference: "",
+                            created: "",
+                            creator: "", 
+                            license: "",
+                            rights_holder: "",
+                            observation_id: winner.observation_id                      
+                        } 
+                    }
+                )
+            ) {
+                console.log("Update successful.");
+            } else {
+                console.log("Bad update.");
+            }
+        } // if (_records.length === 0) {
+        console.log("----------------------------------------------------");        
     }
         
     function sortDescendingByLatitude(a,b)
@@ -170,7 +193,6 @@
             }
         );
         const json = await response.json();
-        console.log(json);
         return json.updateResults && 
             json.updateResults.length && 
             json.updateResults.shift().success === true;

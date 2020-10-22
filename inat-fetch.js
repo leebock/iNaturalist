@@ -1,6 +1,7 @@
 "use strict";
 
 const fetch = require('node-fetch');
+const chalk = require('chalk');  
 
 if (process.argv.length < 4) {
 	console.log("Usage: " + __filename + " species output_file [nlat]");
@@ -35,7 +36,7 @@ const QUERY_STRING = createQueryString(args);
 
 console.log("----------------------------------------------------");
 console.log("Pulling data from iNaturalist API...");
-console.log("Species: "+SPECIES);
+console.log("Species: "+chalk.cyan(SPECIES));
 console.log("Output file: "+OUTPUT_FILE);
 
 var page = 0;
