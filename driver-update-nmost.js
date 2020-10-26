@@ -20,74 +20,70 @@
     *********************************** MAIN ***************************************
     *******************************************************************************/
     
-    const features = await getFeatures();
-    const feature = features.shift();
-    
-    if (!feature) {
-        console.log("No features match query for pass", PASS, ".");
+    const features = await getFeatures(1000);
+    if (features.length < 1) {
+        console.log("No features left in pass", PASS, ".");
         process.exit(-1);
     }
     
-    message1(feature.attributes.taxon_name, feature.attributes.lat);
-
-    // find the new northmost record (if there is one)
-
-    const SCRATCH_FILE = "scratch/"+
-                        feature.attributes.taxon_name.toLowerCase().replace(" ", "-")+
-                        ".csv";
-                        
-    if (
-        child_process.spawnSync(
-            "node",
-            [
-                "inat-fetch", 
-                feature.attributes.taxon_name, 
-                SCRATCH_FILE,
-                feature.attributes.lat
-            ],
-            {stdio: "inherit"}
-        )
-        .status !== 0
-    )
-    {
-        process.exit();
-    }
+    do {
+        const feature = features.shift();
+        message1(feature.attributes.taxon_name, feature.attributes.lat);
     
-    var _records = await csv().fromFile(SCRATCH_FILE);
-    _records.sort(sortDescendingByLatitude);
-    var winner = _records.shift();
-
-    // update according to whether new winner was found
+        // find the new northmost record (if there is one)
+    
+        const SCRATCH_FILE = "scratch/"+
+                            feature.attributes.taxon_name.toLowerCase().replace(" ", "-")+
+                            ".csv";
+                            
+        if (
+            child_process.spawnSync(
+                "node",
+                [
+                    "inat-fetch", 
+                    feature.attributes.taxon_name, 
+                    SCRATCH_FILE,
+                    feature.attributes.lat
+                ],
+                {stdio: "inherit"}
+            )
+            .status !== 0
+        )
+        {
+            process.exit();
+        }
         
-    console.log("");
-    console.log("----------------------------------------------------");    
-    if (!winner) {
-        console.log("Current record remains northmost.");
-        // not much to do here; just update pass field and move on!
-        console.log(
-            await updateFeature(
-                {attributes: {ObjectId: feature.attributes.ObjectId, pass: PASS}}
-            ) ? "Updated pass" : "Problem updating pass"
-        );
-    } else {
-        console.log(
-            "Found", 
-            chalk.cyan(winner.taxon_name), "at", 
-            parseFloat(winner.lat), 
-            "("+winner.place_guess+")"
-        );
-        const geometry = await project(winner.lon, winner.lat);
-        console.log(
-            await updateFeature(
-                {
-                    geometry: geometry,
-                    attributes: buildAtts(feature.attributes.ObjectId, PASS, winner) 
-                }
-            ) ?
-            "Updated observation" : "Problem updating observation"
-        );
-    } // if (_records.length === 0) {
-    console.log("----------------------------------------------------");        
+        var _records = await csv().fromFile(SCRATCH_FILE);
+        _records.sort(sortDescendingByLatitude);
+        var winner = _records.shift();
+    
+        // update according to whether new winner was found
+            
+        console.log("");
+        console.log("----------------------------------------------------");    
+        if (!winner) {
+            // not much to do here; just update pass field and move on!
+            console.log(
+                await updateFeature(
+                    {attributes: {ObjectId: feature.attributes.ObjectId, pass: PASS}}
+                ) ? "Current record remains northmost" : "Error updating pass"
+            );
+        } else {
+            const geometry = await project(winner.lon, winner.lat);
+            console.log(
+                await updateFeature(
+                    {
+                        geometry: geometry,
+                        attributes: buildAtts(feature.attributes.ObjectId, PASS, winner) 
+                    }
+                ) ?
+                "Updated: "+chalk.cyan(winner.taxon_name)+" at "+parseFloat(winner.lat)+" ("+winner.place_guess+")" : 
+                "Error updating observation"
+            );
+        } // if (_records.length === 0) {
+        console.log("****************************************************");        
+        
+    } while (features.length > 0);
 
     /*******************************************************************************
     ********************************* FUNCTIONS ************************************
@@ -119,7 +115,7 @@
     function message1(species, latitude)
     {        
         console.log("");
-        console.log("----------------------------------------------------");    
+        console.log("****************************************************");        
         console.log(
             "Searching for updates for", 
             chalk.cyan(species), 
@@ -196,12 +192,12 @@
             json.updateResults.shift().success === true;
     }
     
-    async function getFeatures()
+    async function getFeatures(n)
     {
         const response = await fetch(
             SERVICE+"/query"+
             "?where="+encodeURIComponent("pass<1")+
-            "&resultRecordCount=1"+            
+            "&resultRecordCount="+n+            
             "&outFields=*"+
             "&f=pjson"
         );
