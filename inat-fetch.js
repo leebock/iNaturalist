@@ -134,6 +134,12 @@ function converter(result)
         photo: result.photos ? 
 			result.photos.length ? processPhotoURL(result.photos[0].url) : null :
 			null,
+		photo_reference: result.photos ?
+			result.photos.length ? "https://www.inaturalist.org/photos/"+result.photos[0].id : null :
+			null,
+		photo_attribution: result.photos ?
+			result.photos.length ? result.photos[0].attribution : null :
+			null,
         page: result.uri,
 		updated_at: result.updated_at
     };
