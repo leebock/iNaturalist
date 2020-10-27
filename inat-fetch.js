@@ -10,7 +10,8 @@ if (process.argv.length < 4) {
 
 const SPECIES = process.argv[2];
 const OUTPUT_FILE = process.argv[3];
-const NLAT = process.argv.length > 4 ? process.argv[4] : null;
+const PLACE_ID = process.argv[4];
+const NLAT = process.argv.length > 5 ? process.argv[5] : null;
 
 const args = {
 	identified: true, /* necessary? */
@@ -24,6 +25,10 @@ const args = {
 	order_by: "observed_on",
 	per_page: 200
 };
+
+if (PLACE_ID) {
+	args.place_id = PLACE_ID;
+}
 
 if (NLAT) {
 	args.swlat = NLAT;
