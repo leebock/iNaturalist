@@ -9,10 +9,11 @@
     const chalk = require('chalk');  
     const csv=require('csvtojson');
     
-    const SERVICE = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/arcgis/rest/services/nmost/FeatureServer/0";
-    const SERVICE_EDIT = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/ArcGIS/rest/services/nmost_edit/FeatureServer/0";
+    const SPECIES_TABLE = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/arcgis/rest/services/species/FeatureServer/0";
+    const SERVICE = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/arcgis/rest/services/nmost_orig/FeatureServer/0";
+    const SERVICE_EDIT = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/arcgis/rest/services/nmost_v2_edit/FeatureServer/0";
     const GEOMETRY_SERVICE = "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer";    
-    const PASS = 1;
+    const PLACE_ID_NORTH_AMERICA = 97394;
     
     const TOKEN = JSON.parse(fs.readFileSync("token.json")).token;
     
@@ -20,16 +21,20 @@
     *********************************** MAIN ***************************************
     *******************************************************************************/
     
-    const features = await getFeatures(1000);
-    if (features.length < 1) {
-        console.log("No features left in pass", PASS, ".");
+    const listSpecies = (await getSpecies()).map(
+        function(value){return value.attributes.taxon_name;}
+    );
+
+    if (listSpecies.length < 1) {
+        console.log("No species returned...");
         process.exit(-1);
     }
-    
+        
     do {
-        const feature = features.shift();
+        const species = listSpecies.shift();
+        const feature = await getFeature(species);
         message1(feature.attributes.taxon_name, feature.attributes.lat);
-    
+
         // find the new northmost record (if there is one)
     
         const SCRATCH_FILE = "scratch/"+
@@ -43,6 +48,7 @@
                     "inat-fetch", 
                     feature.attributes.taxon_name, 
                     SCRATCH_FILE,
+                    PLACE_ID_NORTH_AMERICA,
                     feature.attributes.lat
                 ],
                 {stdio: "inherit"}
@@ -64,17 +70,17 @@
         if (!winner) {
             // not much to do here; just update pass field and move on!
             console.log(
-                await updateFeature(
-                    {attributes: {ObjectId: feature.attributes.ObjectId, pass: PASS}}
-                ) ? "Current record remains northmost" : "Error updating pass"
+                await addFeature(feature) ? 
+                "Current record remains northmost" : 
+                "Error updating pass"
             );
         } else {
             const geometry = await project(winner.lon, winner.lat);
             console.log(
-                await updateFeature(
+                await addFeature(
                     {
                         geometry: geometry,
-                        attributes: buildAtts(feature.attributes.ObjectId, PASS, winner) 
+                        attributes: buildAtts(species, winner) 
                     }
                 ) ?
                 "Updated: "+chalk.cyan(winner.taxon_name)+" at "+parseFloat(winner.lat)+" ("+winner.place_guess+")" : 
@@ -83,18 +89,16 @@
         } // if (_records.length === 0) {
         console.log("****************************************************");        
         
-    } while (features.length > 0);
+    } while (listSpecies.length > 0);
 
     /*******************************************************************************
     ********************************* FUNCTIONS ************************************
     *******************************************************************************/
     
-    function buildAtts(objectId, pass, northmost)
+    function buildAtts(species, northmost)
     {
         return {
-            ObjectId: objectId, 
-            pass: PASS,
-            taxon_name: northmost.taxon_name,
+            taxon_name: species,
             generic_name: northmost.generic_name,
             observer: "",
             observation_date: northmost.observation_date,
@@ -166,7 +170,7 @@
         return json.geometries.shift();
     }
 
-    async function updateFeature(obj)
+    async function addFeature(obj)
     {
         var postData = {
             features:JSON.stringify([obj]),
@@ -176,7 +180,7 @@
         postData = querystring.stringify(postData);
 
         const response = await fetch(
-            SERVICE_EDIT+"/updateFeatures"+"?token="+TOKEN,
+            SERVICE_EDIT+"/addFeatures"+"?token="+TOKEN,
             {
                 method: "POST",
                 body: postData,
@@ -187,23 +191,36 @@
             }
         );
         const json = await response.json();
-        return json.updateResults && 
-            json.updateResults.length && 
-            json.updateResults.shift().success === true;
+        return json.addResults && 
+            json.addResults.length && 
+            json.addResults.shift().success === true;
     }
     
-    async function getFeatures(n)
+    async function getSpecies()
     {
         const response = await fetch(
-            SERVICE+"/query"+
-            "?where="+encodeURIComponent("pass<1")+
-            "&resultRecordCount="+n+            
+            SPECIES_TABLE+"/query"+
+            "?where="+encodeURIComponent("1=1")+
             "&outFields=*"+
-            "&f=pjson"
+            "&f=pjson"+
+            "&token="+TOKEN
         );
         const json = await response.json();         
         return json.features;
     }
+    
+    async function getFeature(species)
+    {
+        const response = await fetch(
+            SERVICE+"/query"+
+            "?where="+encodeURIComponent("taxon_name='"+species+"'")+
+            "&outFields=*"+
+            "&f=pjson"+
+            "&token="+TOKEN
+        );
+        const json = await response.json();   
+        return json.features.shift();
+    }    
 
 })().catch(err => {
     console.error(err);
