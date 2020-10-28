@@ -9,9 +9,9 @@
     const chalk = require('chalk');  
     const csv=require('csvtojson');
     
-    const SPECIES_TABLE = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/arcgis/rest/services/species/FeatureServer/0";
-    const SERVICE = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/arcgis/rest/services/nmost_orig/FeatureServer/0";
-    const SERVICE_EDIT = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/arcgis/rest/services/nmost_v2_edit/FeatureServer/0";
+    const SPECIES_CSV = "../data/species/species.csv";
+    const SERVICE_READ = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/arcgis/rest/services/nmost_orig/FeatureServer/0";
+    const SERVICE_WRITE = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/arcgis/rest/services/nmost_v2_edit/FeatureServer/0";
     const GEOMETRY_SERVICE = "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer";    
     const PLACE_ID_NORTH_AMERICA = 97394;
     
@@ -21,12 +21,12 @@
     *********************************** MAIN ***************************************
     *******************************************************************************/
     
-    const listSpecies = (await getSpecies()).map(
-        function(value){return value.attributes.taxon_name;}
-    );
+    const listSpecies = (await csv().fromFile(SPECIES_CSV))
+        .filter(function(value){return value.visited.trim().toLowerCase() === "false";})
+        .map(function(value){return value.species;});
 
     if (listSpecies.length < 1) {
-        console.log("No species returned...");
+        console.log("All species have been visited...");
         process.exit(-1);
     }
         
@@ -182,7 +182,7 @@
         postData = querystring.stringify(postData);
 
         const response = await fetch(
-            SERVICE_EDIT+"/addFeatures"+"?token="+TOKEN,
+            SERVICE_WRITE+"/addFeatures"+"?token="+TOKEN,
             {
                 method: "POST",
                 body: postData,
@@ -198,23 +198,10 @@
             json.addResults.shift().success === true;
     }
     
-    async function getSpecies()
-    {
-        const response = await fetch(
-            SPECIES_TABLE+"/query"+
-            "?where="+encodeURIComponent("1=1")+
-            "&outFields=*"+
-            "&f=pjson"+
-            "&token="+TOKEN
-        );
-        const json = await response.json();         
-        return json.features;
-    }
-    
     async function getFeature(species)
     {
         const response = await fetch(
-            SERVICE+"/query"+
+            SERVICE_READ+"/query"+
             "?where="+encodeURIComponent("taxon_name='"+species+"'")+
             "&outFields=*"+
             "&f=pjson"+
