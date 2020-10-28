@@ -16,9 +16,9 @@
     
     const SERVICE = process.argv[2];
     const OUTPUT_FILE = process.argv[3];
-    const SORT_FIELD = process.argv.length > 3 ? process.argv[4].trim() : null;
-    const OUTPUT_FIELDS = process.argv.length > 4 ? process.argv[5].trim() : null;
-    const TOKEN = process.argv.length > 5 ? 
+    const SORT_FIELD = process.argv.length > 4 ? process.argv[4].trim() : null;
+    const OUTPUT_FIELDS = process.argv.length > 5 ? process.argv[5].trim() : null;
+    const TOKEN = process.argv.length > 6 ? 
         JSON.parse(fs.readFileSync(process.argv[6])).token : 
         null;
         
