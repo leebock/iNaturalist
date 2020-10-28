@@ -86,6 +86,16 @@ function doIt()
 							records.length, 
 							"records after filtering for obscured."
 						);
+						records = records.filter(
+							function(record) {
+								return record.taxon_name.toLowerCase().indexOf(SPECIES.toLowerCase())>-1;
+							}
+						);
+						console.log(
+							"Reducing to", 
+							records.length, 
+							"records after filtering for strict species and sub species only."
+						);
 						
 						const fields = Object.keys(converter({}));
 						
