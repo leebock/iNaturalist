@@ -6,7 +6,11 @@
     const fs = require("fs");
     
     if (process.argv.length < 4) {
-    	console.log("Usage: " + __filename + " service output_file [sort_field] [output_fields] [token_file]");
+    	console.log(
+            "Usage:",
+            __filename.split("\u005c").pop(), 
+            "service output_file [sort_field] [output_fields] [token_file]"
+        );
     	process.exit(-1);
     }
     
@@ -40,7 +44,12 @@
     /* write to csv output file */
     require("fs").writeFile(
         OUTPUT_FILE, 
-        require('json2csv').parse(_results, OUTPUT_FIELDS && OUTPUT_FIELDS.length > 0 ? {fields: OUTPUT_FIELDS.split(",")} : {}), 
+        require('json2csv').parse(
+            _results, 
+            OUTPUT_FIELDS && OUTPUT_FIELDS.length > 0 ? 
+                {fields: OUTPUT_FIELDS.split(",")} : 
+                {}
+        ), 
         (err) => {
             if (err) {
                 throw("error writing file!");
