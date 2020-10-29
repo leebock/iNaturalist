@@ -134,6 +134,7 @@ function converter(result)
 		taxon_name: result.taxon ? result.taxon.name : null,
         quality_grade: result.quality_grade,
         observation_date: result.observed_on,
+		observer_name: result.user ? result.user.name : null,
 		geoprivacy: result.geoprivacy,
 		taxon_geoprivacy: result.taxon_geoprivacy,
 		obscured: result.obscured,
