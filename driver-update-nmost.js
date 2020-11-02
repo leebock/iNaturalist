@@ -10,7 +10,7 @@
     const csv=require('csvtojson');
     
     const SPECIES_CSV = "../data/species/species.csv";
-    const SERVICE_READ = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/arcgis/rest/services/nmost_orig/FeatureServer/0";
+    const SERVICE_READ = "https://services7.arcgis.com/poOcx60xJtGtoR7g/arcgis/rest/services/NMost_Aug18/FeatureServer/0";
     const SERVICE_WRITE = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/arcgis/rest/services/nmost_v2_edit/FeatureServer/0";
     const GEOMETRY_SERVICE = "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer";    
     const PLACE_ID_NORTH_AMERICA = 97394;
@@ -33,6 +33,7 @@
     do {
         const species = listSpecies.shift();
         const feature = await getFeature(species);
+        feature.attributes = converter(feature.attributes);
         message1(feature.attributes.taxon_name, feature.attributes.lat);
 
         // find the new northmost record (if there is one)
@@ -80,7 +81,7 @@
                 await addFeature(
                     {
                         geometry: geometry,
-                        attributes: buildAtts(species, winner) 
+                        attributes: winner
                     }
                 ) ?
                 "Updated: "+chalk.cyan(winner.taxon_name)+" at "+parseFloat(winner.lat)+" ("+winner.place_guess+")" : 
@@ -95,28 +96,29 @@
     ********************************* FUNCTIONS ************************************
     *******************************************************************************/
     
-    function buildAtts(species, northmost)
+    function converter(record)
     {
-        return {
-            taxon_name: species,
-            generic_name: northmost.generic_name,
-            observer: "",
-            observation_date: northmost.observation_date,
-            page: northmost.page,
-            lat: northmost.lat,
-            lon: northmost.lon,
-            place_guess: northmost.place_guess,
-            positional_accuracy: northmost.positional_accuracy,
-            photo: northmost.photo,
-            photo_reference: northmost.photo_reference,
-            photo_attribution: northmost.photo_attribution,
-            created: "",
-            creator: "", 
-            license: "",
-            rights_holder: "",
-            observation_id: northmost.observation_id                      
-        };        
+        return  {
+            taxon_name: record.species,
+            observation_id: parseInt(record.occrrID.split("/").pop()),
+            observer_name: record.idntfdB,
+            observation_date: record.eventDt,
+            page: record.occrrID,
+            lat: parseFloat(record.dcmlLtt),
+            lon: parseFloat(record.dcmlLng),
+            photo: processPhotoURL(record.identfr),
+            photo_reference: record.refrncs,
+            photo_attribution: record.license
+        };
+        function processPhotoURL(URL)
+        {
+            // derives the medium photo url from the give square one.
+            var parts = URL.split("/");
+            var extension = parts.pop().split("?").shift().split(".").pop();
+            return parts.join("/")+"/medium."+extension;
+        }
     }
+    
 
     function message1(species, latitude)
     {        
@@ -202,7 +204,7 @@
     {
         const response = await fetch(
             SERVICE_READ+"/query"+
-            "?where="+encodeURIComponent("taxon_name='"+species+"'")+
+            "?where="+encodeURIComponent("species='"+species+"'")+
             "&outFields=*"+
             "&f=pjson"+
             "&token="+TOKEN
