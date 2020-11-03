@@ -4,14 +4,29 @@ const fetch = require('node-fetch');
 const chalk = require('chalk');  
 
 if (process.argv.length < 4) {
-	console.log("Usage: " + __filename + " species output_file [nlat]");
+	console.log("Usage: " + __filename + " species output_file [place_id] [lat_threshold] [north/south]");
 	process.exit(-1);
 }
 
 const SPECIES = process.argv[2];
 const OUTPUT_FILE = process.argv[3];
-const PLACE_ID = process.argv[4];
-const NLAT = process.argv.length > 5 ? process.argv[5] : null;
+const PLACE_ID = process.argv[4] === "#" ? null : process.argv[4];
+
+if (process.argv.length > 5) {
+	if (process.argv.length !== 7) {
+		console.log("Usage: " + __filename + " species output_file [place_id] [lat_threshold] [north/south]");
+		process.exit(-1);
+	}
+
+	process.argv[6] = process.argv[6].toLowerCase();
+	if (process.argv[6] !== "north" && process.argv[6] !== "south") {
+		console.log("Usage: " + __filename + " species output_file [place_id] [lat_threshold] [north/south]");
+		process.exit(-1);
+	}
+}
+
+const LAT_THRESHOLD = process.argv[5];
+const DIRECTION = process.argv[6] ? process.argv[6] : null;
 
 const args = {
 	identified: true, /* necessary? */
@@ -30,11 +45,19 @@ if (PLACE_ID) {
 	args.place_id = PLACE_ID;
 }
 
-if (NLAT) {
-	args.swlat = NLAT;
-	args.swlng = -180;
-	args.nelat = 90;
-	args.nelng = 180;
+if (LAT_THRESHOLD && DIRECTION) {
+	if (DIRECTION === "north")
+	{
+		args.swlat = LAT_THRESHOLD;
+		args.swlng = -180;
+		args.nelat = 90;
+		args.nelng = 180;
+	} else {
+		args.swlat = -90;
+		args.swlng = -180;
+		args.nelat = LAT_THRESHOLD;
+		args.nelng = 180;
+	}
 }
 
 const QUERY_STRING = createQueryString(args);
