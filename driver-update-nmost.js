@@ -22,7 +22,7 @@
     *******************************************************************************/
     
     const listSpecies = (await csv().fromFile(SPECIES_CSV))
-        .filter(function(value){return value.visited.trim().toLowerCase() === "false";})
+        /*.filter(function(value){return value.visited.trim().toLowerCase() === "false";})*/
         .map(function(value){return value.species;});
 
     if (listSpecies.length < 1) {
@@ -77,6 +77,7 @@
             );
         } else {
             const geometry = await project(winner.lon, winner.lat);
+            winner.taxon_name = species;
             console.log(
                 await addFeature(
                     {
