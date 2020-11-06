@@ -10,10 +10,12 @@
     const csv=require('csvtojson');
     
     const SPECIES_CSV = "../data/species/species.csv";
-    const SERVICE_READ = "https://services7.arcgis.com/poOcx60xJtGtoR7g/arcgis/rest/services/NMost_Aug18/FeatureServer/0";
-    const SERVICE_WRITE = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/arcgis/rest/services/nmost_v2_edit/FeatureServer/0";
     const GEOMETRY_SERVICE = "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer";    
     const PLACE_ID_NORTH_AMERICA = 97394;
+
+    const SERVICE_READ = "https://services7.arcgis.com/poOcx60xJtGtoR7g/ArcGIS/rest/services/SMost_Aug_18/FeatureServer/0";
+    const SERVICE_WRITE = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/arcgis/rest/services/smost_v2_edit/FeatureServer/0";
+    const DIRECTION = "south";
     
     const TOKEN = JSON.parse(fs.readFileSync("token.json")).token;
     
@@ -50,7 +52,8 @@
                     feature.attributes.taxon_name, 
                     SCRATCH_FILE,
                     PLACE_ID_NORTH_AMERICA,
-                    feature.attributes.lat
+                    feature.attributes.lat,
+                    DIRECTION
                 ],
                 {stdio: "inherit"}
             )
