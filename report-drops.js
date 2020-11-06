@@ -1,10 +1,19 @@
 (async () => {
     
     "use strict";
-    
-    const FILE_ORIG = "../data/northernmost/nmost_orig.csv";
-    const FILE_V2 = "../data/northernmost/nmost_v2.csv";
-    const FILE_OUT = "../data/species/problems.csv";
+
+    if (process.argv.length < 5) {
+    	console.log(
+            "Usage:",
+            __filename.split("\u005c").pop(), 
+            "orig_file revised_file output_file"
+        );
+    	process.exit(-1);
+    }
+
+    const FILE_ORIG = process.argv[2]; //"../data/northernmost/nmost_orig.csv";
+    const FILE_V2 = process.argv[3]; //"../data/northernmost/nmost_v2.csv";
+    const FILE_OUT = process.argv[4]; //"../data/species/problems.csv";
 
     const csv=require('csvtojson');
     const _recordsOG = (await csv().fromFile(FILE_ORIG)).map(function(value){return value.taxon_name;});
