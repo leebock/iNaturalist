@@ -38,7 +38,7 @@
         feature.attributes = converter(feature.attributes);
         message1(feature.attributes.taxon_name, feature.attributes.lat);
 
-        // find the new northmost record (if there is one)
+        // find the new northmost/southmost record (if there is one)
     
         const SCRATCH_FILE = "scratch/"+
                             feature.attributes.taxon_name.toLowerCase().replace(" ", "-")+
@@ -75,7 +75,7 @@
             // not much to do here; just update pass field and move on!
             console.log(
                 await addFeature(feature) ? 
-                "Current record remains northmost" : 
+                "Current record remains "+DIRECTION+"most" : 
                 "Error updating pass"
             );
         } else {
@@ -131,7 +131,7 @@
         console.log(
             "Searching for updates for", 
             chalk.cyan(species), 
-            "north of", 
+            DIRECTION+" of", 
             latitude
         );
         console.log("----------------------------------------------------","\n");        
