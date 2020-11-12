@@ -21,7 +21,8 @@
 	var _totalRecs;
 
 	getCount(
-		function() {
+		function(/*objectIDs*/) {
+			// todo: check for objectIDs null or zero length 
 			// begin the purge
 			console.log("Removing "+_totalRecs+" records...");
 			doNext();
@@ -30,6 +31,8 @@
 
 	function getCount(callBack)
 	{
+		// todo: should use async node-fetch
+		// todo: should merely return list of object ids (not mess with globals)
 		request(
 			SERVICE_URL+"/query"+
 			"?where="+encodeURIComponent("1 = 1")+
