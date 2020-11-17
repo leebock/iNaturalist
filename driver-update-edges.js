@@ -13,9 +13,9 @@
     const GEOMETRY_SERVICE = "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer";    
     const PLACE_ID_NORTH_AMERICA = 97394;
 
-    const SERVICE_READ = "https://services7.arcgis.com/poOcx60xJtGtoR7g/ArcGIS/rest/services/SMost_Aug_18/FeatureServer/0";
-    const SERVICE_WRITE = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/arcgis/rest/services/smost_v2_edit/FeatureServer/0";
-    const DIRECTION = "south";
+    const SERVICE_READ = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/arcgis/rest/services/nmost_v2/FeatureServer/0";
+    const SERVICE_WRITE = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/arcgis/rest/services/nmost_v3_edit/FeatureServer/0";
+    const DIRECTION = "north";
     
     const TOKEN = JSON.parse(fs.readFileSync("token.json")).token;
     
@@ -35,7 +35,9 @@
     do {
         const species = listSpecies.shift();
         const feature = await getFeature(species);
-        feature.attributes = converter(feature.attributes);
+        // to do: check for null return (which is now actually legit); at least error out
+        // politely
+        feature.attributes = feature.attributes;
         message1(feature.attributes.taxon_name, feature.attributes.lat);
 
         // find the new northmost/southmost record (if there is one)
@@ -98,31 +100,7 @@
 
     /*******************************************************************************
     ********************************* FUNCTIONS ************************************
-    *******************************************************************************/
-    
-    function converter(record)
-    {
-        return  {
-            taxon_name: record.species,
-            observation_id: parseInt(record.occrrID.split("/").pop()),
-            observer_name: record.idntfdB,
-            observation_date: record.eventDt,
-            page: record.occrrID,
-            lat: parseFloat(record.dcmlLtt),
-            lon: parseFloat(record.dcmlLng),
-            photo: processPhotoURL(record.identfr),
-            photo_reference: record.refrncs,
-            photo_attribution: record.license
-        };
-        function processPhotoURL(URL)
-        {
-            // derives the medium photo url from the give square one.
-            var parts = URL.split("/");
-            var extension = parts.pop().split("?").shift().split(".").pop();
-            return parts.join("/")+"/medium."+extension;
-        }
-    }
-    
+    *******************************************************************************/    
 
     function message1(species, latitude)
     {        
@@ -208,12 +186,12 @@
     {
         const response = await fetch(
             SERVICE_READ+"/query"+
-            "?where="+encodeURIComponent("species='"+species+"'")+
+            "?where="+encodeURIComponent("taxon_name='"+species+"'")+
             "&outFields=*"+
             "&f=pjson"+
             "&token="+TOKEN
         );
-        const json = await response.json();   
+        const json = await response.json();
         return json.features.shift();
     }    
 
