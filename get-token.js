@@ -1,61 +1,45 @@
-var os = require("os");
-var querystring = require("querystring");
-var https = require("https");
+(async () => {
 
-var USERNAME = process.argv[2];
-var PASSWORD = process.argv[3];
+    "use strict";
 
-if (process.argv.length !== 4) {
-    console.log("Usage: " + __filename + " username password");
-    process.exit(1);
-}
+    const os = require("os");
+    const querystring = require("querystring");
+    const fetch = require('node-fetch');
+    const fs = require("fs");
 
-getToken(function(){console.log("done");});
+    const USERNAME = process.argv[2];
+    const PASSWORD = process.argv[3];
+    const OUTPUT_FILE = "token.json";
 
-function getToken(callBack)
-{
-	
-	var postData = {
-		username: USERNAME,
-		password: PASSWORD,
-		referer: os.hostname(),
+    if (process.argv.length !== 4) {
+        console.log("Usage: " + __filename + " username password");
+        process.exit(1);
+    }
+
+    var postData = {
+        username: USERNAME,
+        password: PASSWORD,
+        referer: os.hostname(),
         expiration: 60*24*60,
-		f: "json"
+        f: "json"
     };
-	
-	postData = querystring.stringify(postData);
-	
-	var options = {
-		host: "www.arcgis.com",
-		method: "POST",
-		port: 443,
-		path: "https://www.arcgis.com/sharing/rest/generateToken",
-		headers:{"Content-Type": "application/x-www-form-urlencoded","Content-Length": postData.length}
-	};
-	
-	var result = "";	
 
-	try {
-			
-		var req = https.request(options, function(res) {
-			res.setEncoding('utf8');
-			res.on('data', function (chunk) {
-				result = result+chunk;
-			}).on('end', function(huh){
-				console.log(JSON.parse(result));
-				callBack();
-			});
-		});
-	
-		req.on('error', function(e) {
-			console.log("uh-oh...error in token request");
-		});
-		
-		req.write(postData);
-		req.end();
-	
-	} catch(err) {
-		console.log("problem communicating with token service...");
-	}	
-	
-}
+    postData = querystring.stringify(postData);
+
+    var options = {
+        method: "POST",
+        port: 443,
+        body: postData,
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Content-Length": postData.length
+        }
+    };
+
+    const response = await fetch("https://www.arcgis.com/sharing/rest/generateToken", options);
+    const json = await response.json();
+    fs.writeFileSync(OUTPUT_FILE, JSON.stringify(json));
+
+})().catch(err => {
+    console.error(err);
+});
