@@ -13,8 +13,8 @@
     const GEOMETRY_SERVICE = "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer";    
     const PLACE_ID_NORTH_AMERICA = 97394;
 
-    const SERVICE_READ = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/arcgis/rest/services/nmost_v2/FeatureServer/0";
-    const SERVICE_WRITE = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/arcgis/rest/services/nmost_v3_edit/FeatureServer/0";
+    const SERVICE_READ = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/arcgis/rest/services/nmost_v3/FeatureServer/0";
+    const SERVICE_WRITE = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/arcgis/rest/services/nmost_v4_edit/FeatureServer/0";
     const DIRECTION = "north";
     
     const TOKEN = JSON.parse(fs.readFileSync("token.json")).token;
@@ -34,11 +34,46 @@
         
     do {
         const species = listSpecies.shift();
+        
+        console.log("\n\n\n");
+        console.log("****************************************************");        
+        console.log("Now processing "+chalk.cyan(species));
+        
+        // before attempting to retrieve feature, check count to see if it exists
+        // note: this is purely to provide more precise messaging, should feature
+        // retrieval fail.
+        
+        const count = await getFeatureCount(species);
+        
+        if (Number.isInteger(count)) {
+            if (count === 0) {
+                console.log("Unable to find record for "+chalk.cyan(species)+" in current service?");
+                process.exit();
+            } else if (count === 1) { 
+                // do nothing
+            } else {
+                console.log("More than one record for "+chalk.cyan(species)+" in current service?");
+                process.exit();
+            }
+        } else {
+            console.log("Error retrieving "+chalk.cyan(species)+" record from current service.");
+            process.exit();
+        }
+
+        // if we made it to here, there's exactly one record for the species in the
+        // current service.  now, retrieve it...
+        
+        console.log("Retrieving record for "+chalk.cyan(species)+" in current service."); 
+
         const feature = await getFeature(species);
-        // to do: check for null return (which is now actually legit); at least error out
-        // politely
         feature.attributes = feature.attributes;
-        message1(feature.attributes.taxon_name, feature.attributes.lat);
+        
+        console.log(
+            "Search iNaturalist for instances of", 
+            chalk.cyan(feature.attributes.taxon_name), 
+            DIRECTION+" of", 
+            feature.attributes.lat
+        );
 
         // find the new northmost/southmost record (if there is one)
     
@@ -71,18 +106,21 @@
     
         // update according to whether new winner was found
             
-        console.log("");
-        console.log("----------------------------------------------------");    
         if (!winner) {
-            // not much to do here; just update pass field and move on!
+            // write the existing feature to the new service
+            console.log("Current record remains "+DIRECTION+"most.");
             console.log(
                 await addFeature(feature) ? 
-                "Current record remains "+DIRECTION+"most" : 
-                "Error updating pass"
+                "Successfully wrote current record to service." : 
+                "Error writing feature to service."
             );
         } else {
+            // write the new winner to the new service
             const geometry = await project(winner.lon, winner.lat);
             winner.taxon_name = species;
+            console.log("Updating "+DIRECTION+"most occurence for "+
+                        chalk.cyan(winner.taxon_name)+" to "+
+                        parseFloat(winner.lat)+" ("+winner.place_guess+")");
             console.log(
                 await addFeature(
                     {
@@ -90,7 +128,7 @@
                         attributes: winner
                     }
                 ) ?
-                "Updated: "+chalk.cyan(winner.taxon_name)+" at "+parseFloat(winner.lat)+" ("+winner.place_guess+")" : 
+                "Successfully wrote new winner to service." : 
                 "Error updating observation"
             );
         } // if (_records.length === 0) {
@@ -101,19 +139,6 @@
     /*******************************************************************************
     ********************************* FUNCTIONS ************************************
     *******************************************************************************/    
-
-    function message1(species, latitude)
-    {        
-        console.log("");
-        console.log("****************************************************");        
-        console.log(
-            "Searching for updates for", 
-            chalk.cyan(species), 
-            DIRECTION+" of", 
-            latitude
-        );
-        console.log("----------------------------------------------------","\n");        
-    }
         
     function sortDescendingByLatitude(a,b)
     {
@@ -193,6 +218,19 @@
         );
         const json = await response.json();
         return json.features.shift();
+    }
+        
+    async function getFeatureCount(species)
+    {
+        const response = await fetch(
+            SERVICE_READ+"/query"+
+            "?where="+encodeURIComponent("taxon_name='"+species+"'")+
+            "&returnCountOnly=true"+
+            "&f=pjson"+
+            "&token="+TOKEN
+        );
+        const json = await response.json();
+        return json.count;
     }    
 
 })().catch(err => {
