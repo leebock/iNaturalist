@@ -2,9 +2,8 @@
   "name": "inaturalist",
   "version": "1.0.0",
   "description": "",
-  "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start-dev": "nodemon --exec eslint ./ --ext .js"
   },
   "author": "Lee Bock",
   "license": "ISC",
@@ -16,9 +15,6 @@
     "request": "^2.88.2"
   },
   "devDependencies": {
-    "grunt": "^1.3.0",
-    "grunt-contrib-compress": "^1.6.0",
-    "grunt-contrib-jshint": "^2.1.0",
-    "grunt-contrib-watch": "^1.1.0"
+    "eslint": "^7.19.0"
   }
 }

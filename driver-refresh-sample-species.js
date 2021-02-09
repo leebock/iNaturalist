@@ -13,7 +13,7 @@ const CONFIGS = [
     }    
 ];
 
-CONFIGS.forEach((config, i) => {
+CONFIGS.forEach((config) => {
 
     console.log();
     

@@ -6,12 +6,12 @@
     const fs = require("fs");
     
     if (process.argv.length < 4) {
-    	console.log(
+        console.log(
             "Usage:",
             __filename.split("\u005c").pop(), 
             "service output_file [sort_field] [output_fields] [token_file]"
         );
-    	process.exit(-1);
+        process.exit(-1);
     }
     
     const SERVICE = process.argv[2];

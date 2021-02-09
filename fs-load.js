@@ -6,10 +6,10 @@
 	const querystring = require("querystring");
 	const fs = require("fs");
 
-  	if (process.argv.length !== 4) {
-  		console.log("Usage: " + __filename + " input_file service");
-  		process.exit(-1);
-  	}
+	if (process.argv.length !== 4) {
+		console.log("Usage: " + __filename + " input_file service");
+		process.exit(-1);
+	}
 
 	const FILE = process.argv[2];
 	const SERVICE_URL = process.argv[3];
@@ -31,7 +31,7 @@
 		})
 		.on(
 			"done", 
-			function(error) {
+			function() {
 				_totalRecs = _records.length;
 				console.log("Processing", _totalRecs, "records...");
 				write();
@@ -69,7 +69,7 @@
 			res.setEncoding('utf8');
 			res.on('data', function (chunk) {
 				result = result+chunk;
-			}).on('end', function(huh){
+			}).on('end', function(){
 				if (
 					JSON.parse(result).addResults &&
 					JSON.parse(result).addResults.length && 

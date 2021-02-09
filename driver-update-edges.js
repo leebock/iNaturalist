@@ -66,7 +66,6 @@
         console.log("Retrieving record for "+chalk.cyan(species)+" in current service."); 
 
         const feature = await getFeature(species);
-        feature.attributes = feature.attributes;
         
         console.log(
             "Search iNaturalist for instances of", 
@@ -154,17 +153,17 @@
     async function project(x, y)
     {
     
-    	var postData = {
-    		inSR:4326,
-    		outSR:3857,
-    		geometries: JSON.stringify({
-    			"geometryType":"esriGeometryPoint",
-    			"geometries":[{x:x,y:y}]
-    		}),
-    		f:"pjson"
-    	}; 
+        var postData = {
+            inSR:4326,
+            outSR:3857,
+            geometries: JSON.stringify({
+                "geometryType":"esriGeometryPoint",
+                "geometries":[{x:x,y:y}]
+            }),
+            f:"pjson"
+        }; 
     
-    	postData = querystring.stringify(postData);
+        postData = querystring.stringify(postData);
 
         const response = await fetch(
             GEOMETRY_SERVICE+"/project",

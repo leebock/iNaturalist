@@ -22,12 +22,12 @@ var _counter = 0;
 require('csvtojson')()
 	.fromFile(IN_FILE)
 	.on('data',(data)=>{
-	    //data is a buffer object
+		//data is a buffer object
         _records.push(JSON.parse(data.toString('utf8')));
 	})
 	.on(
 		"done", 
-		function(error) {
+		function() {
 			console.log("Processing", _records.length, "records.");
             doIt();
 		}
@@ -60,7 +60,7 @@ function doIt()
 function finish() 
 {
     var csv = require("json2csv").parse(_records); /* json2csv */
-	require("fs").writeFile(OUT_FILE, csv, (err) => {}); /* writeFile */    
+	require("fs").writeFile(OUT_FILE, csv, () => {}); /* writeFile */    
 }
 
 function project(x, y, callBack)
@@ -92,7 +92,7 @@ function project(x, y, callBack)
 		res.setEncoding('utf8');
 		res.on('data', function (chunk) {
 			result = result+chunk;
-		}).on('end', function(huh){
+		}).on('end', function(){
 			callBack(JSON.parse(result).geometries[0]);
 		});
 	});

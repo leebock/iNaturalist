@@ -83,21 +83,21 @@ function doIt()
 
 				try {
 
-	                var json = JSON.parse(body);
-	                records = records.concat(json.results.map(converter));
+					var json = JSON.parse(body);
+					records = records.concat(json.results.map(converter));
 					if (page === 1) {
 						console.log("Pulling", json.total_results, "records...");
 					}
-	                process.stdout.clearLine();  // clear current text
-	    			process.stdout.cursorTo(0);  // move cursor to beginning of line
+					process.stdout.clearLine();  // clear current text
+					process.stdout.cursorTo(0);  // move cursor to beginning of line
 					process.stdout.write(
 						"Progress: "+
 						parseInt((records.length/json.total_results)*100)+
 						"%"
 					);
-	                if (records.length < json.total_results) {
-	                    doIt();
-	                } else {
+					if (records.length < json.total_results) {
+						doIt();
+					} else {
 
 						console.log("");                    
 						
@@ -122,22 +122,22 @@ function doIt()
 						
 						const fields = Object.keys(converter({}));
 						
-	                    /* write to csv output file */
-	                    require("fs").writeFile(
-	                    	OUTPUT_FILE, 
-	                    	require('json2csv').parse(
+						/* write to csv output file */
+						require("fs").writeFile(
+							OUTPUT_FILE, 
+							require('json2csv').parse(
 								records, 
 								records.length ? {} : {fields}
 							), 
-	                    	(err) => {
-	                    		if (err) {
-	                    			throw("error writing file!");
-	                    		}
-	                    	}
-	                    ); /* writeFile */ 
-	                    console.log("Success!");                                       
-	                    console.log("----------------------------------------------------");                                       
-	                }
+							(err) => {
+								if (err) {
+									throw("error writing file!");
+								}
+							}
+						); /* writeFile */ 
+						console.log("Success!");                                       
+						console.log("----------------------------------------------------");                                       
+					}
 
 				} catch(err) {
 					console.log("error in inat-fetch!");
@@ -193,7 +193,7 @@ function createQueryString(args)
 
 	const list = [];
 	for (const property in args) {
-		if (args.hasOwnProperty(property)) {
+		if (Object.prototype.hasOwnProperty.call(args, property)) {
 			list.push(`${property}=${args[property]}`);
 		}		
 	}

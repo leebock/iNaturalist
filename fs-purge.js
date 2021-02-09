@@ -2,15 +2,15 @@
 
 	"use strict";
 
-  	if (process.argv.length !== 3) {
-  		console.log("Usage: " + __filename + " service");
-  		process.exit(-1);
-  	}
+	if (process.argv.length !== 3) {
+		console.log("Usage: " + __filename + " service");
+		process.exit(-1);
+	}
 
 	const fs = require('fs');
 	const request = require('request');
 
-  	const SERVICE_URL = process.argv[2];
+	const SERVICE_URL = process.argv[2];
 	const TOKEN = JSON.parse(fs.readFileSync("token.json")).token;
 
 	console.log("----------------------------------------------------");

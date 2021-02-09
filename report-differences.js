@@ -3,12 +3,12 @@
     "use strict";
 
     if (process.argv.length < 5) {
-    	console.log(
+        console.log(
             "Usage:",
             __filename.split("\u005c").pop(), 
             "orig_file revised_file output_file"
         );
-    	process.exit(-1);
+        process.exit(-1);
     }
     
     const FILE_ORIG = process.argv[2]; //"../data/northernmost/nmost_orig.csv";
@@ -21,7 +21,7 @@
     var _diff = [];
     
     var match;
-    _recordsOG.forEach((record, i) => {
+    _recordsOG.forEach((record) => {
         match = _recordsV2.filter(
             function(value){return value.taxon_name === record.taxon_name;}
         ).shift();
