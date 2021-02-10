@@ -12,11 +12,8 @@
     const SPECIES_CSV = "../data/species/species.csv";
     const GEOMETRY_SERVICE = "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer";    
     const PLACE_ID_NORTH_AMERICA = 97394;
-
-    const SERVICE_READ = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/arcgis/rest/services/nmost_v3/FeatureServer/0";
-    const SERVICE_WRITE = "https://services.arcgis.com/nzS0F0zdNLvs7nc8/arcgis/rest/services/nmost_v4_edit/FeatureServer/0";
-    const DIRECTION = "north";
     
+    const CONFIG = JSON.parse(fs.readFileSync("config-edges.json")); 
     const TOKEN = JSON.parse(fs.readFileSync("token.json")).token;
     
     /*******************************************************************************
@@ -70,7 +67,7 @@
         console.log(
             "Search iNaturalist for instances of", 
             chalk.cyan(feature.attributes.taxon_name), 
-            DIRECTION+" of", 
+            CONFIG.direction+" of", 
             feature.attributes.lat
         );
 
@@ -89,7 +86,7 @@
                     SCRATCH_FILE,
                     PLACE_ID_NORTH_AMERICA,
                     feature.attributes.lat,
-                    DIRECTION
+                    CONFIG.direction
                 ],
                 {stdio: "inherit"}
             )
@@ -107,7 +104,7 @@
             
         if (!winner) {
             // write the existing feature to the new service
-            console.log("Current record remains "+DIRECTION+"most.");
+            console.log("Current record remains "+CONFIG.direction+"most.");
             console.log(
                 await addFeature(feature) ? 
                 "Successfully wrote current record to service." : 
@@ -117,7 +114,7 @@
             // write the new winner to the new service
             const geometry = await project(winner.lon, winner.lat);
             winner.taxon_name = species;
-            console.log("Updating "+DIRECTION+"most occurence for "+
+            console.log("Updating "+CONFIG.direction+"most occurence for "+
                         chalk.cyan(winner.taxon_name)+" to "+
                         parseFloat(winner.lat)+" ("+winner.place_guess+")");
             console.log(
@@ -190,7 +187,7 @@
         postData = querystring.stringify(postData);
 
         const response = await fetch(
-            SERVICE_WRITE+"/addFeatures"+"?token="+TOKEN,
+            CONFIG.service_write+"/addFeatures"+"?token="+TOKEN,
             {
                 method: "POST",
                 body: postData,
@@ -209,7 +206,7 @@
     async function getFeature(species)
     {
         const response = await fetch(
-            SERVICE_READ+"/query"+
+            CONFIG.service_read+"/query"+
             "?where="+encodeURIComponent("taxon_name='"+species+"'")+
             "&outFields=*"+
             "&f=pjson"+
@@ -222,7 +219,7 @@
     async function getFeatureCount(species)
     {
         const response = await fetch(
-            SERVICE_READ+"/query"+
+            CONFIG.service_read+"/query"+
             "?where="+encodeURIComponent("taxon_name='"+species+"'")+
             "&returnCountOnly=true"+
             "&f=pjson"+
