@@ -1,8 +1,8 @@
-(function () {
+(async () => {
 
 	"use strict";
 
-	const https = require("https");
+	const fetch = require("node-fetch");
 	const querystring = require("querystring");
 	const fs = require("fs");
 
@@ -20,27 +20,13 @@
 	console.log("Input file: "+FILE);
 	console.log("Service URL: "+SERVICE_URL);
 
-	var _records = [];
-	var _totalRecs;
-	
-	require('csvtojson')()
-		.fromFile(FILE)
-		.on('data',(data)=>{
-			//data is a buffer object
-			_records.push(JSON.parse(data.toString('utf8')));
-		})
-		.on(
-			"done", 
-			function() {
-				_totalRecs = _records.length;
-				console.log("Processing", _totalRecs, "records...");
-				write();
-			}
-		);
-	
-	function write()
-	{
-		var bucket = _records.splice(0, 100).map(
+	var _records = await require('csvtojson')().fromFile(FILE);
+	var _totalRecs = _records.length;
+	console.log("Processing", _totalRecs, "records...");
+		
+	while (_records.length) {
+
+		const bucket = _records.splice(0, 100).map(
 			function(json) {
 				return {
 					geometry: {x: json.x, y: json.y},
@@ -49,58 +35,49 @@
 				};
 			}
 		);
-		var postData = {
-			features:JSON.stringify(bucket),
-			f:"pjson"
-		};
 		
-		postData = querystring.stringify(postData);
-		var options = {
-			hostname: "services.arcgis.com",
-			method: "POST",
-			port: 443,
-			path: SERVICE_URL+"/addFeatures"+"?token="+TOKEN,
-			headers:{"Content-Type": "application/x-www-form-urlencoded","Content-Length": postData.length}
-		};
+		const postData = querystring.stringify(
+			{
+				features:JSON.stringify(bucket),
+				f:"pjson"
+			}
+		);
+		
+		const response = await fetch(
+			SERVICE_URL+"/addFeatures"+"?token="+TOKEN,
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/x-www-form-urlencoded",
+					"Content-Length": postData.length
+				},
+				body: postData
+			}			
+		);
+		
+		const json = await response.json();
 
-		var result = "";	
-		
-		var req = https.request(options, function(res) {
-			res.setEncoding('utf8');
-			res.on('data', function (chunk) {
-				result = result+chunk;
-			}).on('end', function(){
-				if (
-					JSON.parse(result).addResults &&
-					JSON.parse(result).addResults.length && 
-					JSON.parse(result).addResults.shift().success === true
-				) {
-					process.stdout.clearLine();  // clear current text
-					process.stdout.cursorTo(0);  // move cursor to beginning of line
-					process.stdout.write("Progress: "+(100-parseInt((_records.length/_totalRecs)*100))+"%");
-					if (_records.length) {
-						write();
-					} else {
-						// log success
-						console.log("");
-						console.log("Success!");
-						console.log("----------------------------------------------------");
-					}
-				} else {
-					console.log("");
-					console.log("problem with bucket.  exiting...");
-					process.exit(1);					
-				}
-			});
-		});
-		
-		req.on('error', function(e) {
-			console.log('problem with request: ' + e.message);
-		});
-		
-		req.write(postData);
-		req.end();		
+		if (
+			json.addResults &&
+			json.addResults.length && 
+			json.addResults.shift().success === true
+		) {
+			process.stdout.clearLine();  // clear current text
+			process.stdout.cursorTo(0);  // move cursor to beginning of line
+			process.stdout.write("Progress: "+(100-parseInt((_records.length/_totalRecs)*100))+"%");
+		} else {
+			console.log("");
+			console.log("problem with bucket.  exiting...");
+			process.exit(1);					
+		}
 
 	}
 
-}());
+	console.log("");
+	console.log("Success!");
+	console.log("----------------------------------------------------");
+
+
+})().catch(err => {
+    console.error(err);
+});

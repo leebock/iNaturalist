@@ -1,4 +1,4 @@
-(function () {
+(async () => {
 
 	"use strict";
 
@@ -8,7 +8,8 @@
 	}
 
 	const fs = require('fs');
-	const request = require('request');
+	const querystring = require("querystring");
+	const fetch = require('node-fetch');
 
 	const SERVICE_URL = process.argv[2];
 	const TOKEN = JSON.parse(fs.readFileSync("token.json")).token;
@@ -17,94 +18,72 @@
 	console.log("Purging records from feature service...");
 	console.log("Service URL: "+SERVICE_URL);
 
-	var _objectIDs;
-	var _totalRecs;
-
-	getCount(
-		function(/*objectIDs*/) {
-			// todo: check for objectIDs null or zero length 
-			// begin the purge
-			console.log("Removing "+_totalRecs+" records...");
-			doNext();
-		}
-	);
-
-	function getCount(callBack)
-	{
-		// todo: should use async node-fetch
-		// todo: should merely return list of object ids (not mess with globals)
-		request(
-			SERVICE_URL+"/query"+
-			"?where="+encodeURIComponent("1 = 1")+
-			"&returnIdsOnly=true"+
-			"&token="+TOKEN+
-			"&f=pjson",		
-			{json: true}, 
-			(error, response, body) => {
+	const _objectIDs = await getObjectIds();
+	const _totalRecs = _objectIDs.length;
 	
-				if (error) { 
-					return console.log(error); 
-				}
-	
-				_objectIDs = body.objectIds;
-				_totalRecs = _objectIDs.length;
-				
-				if (!_objectIDs.length) {
-					console.log("Feature service is already empty.");
-					console.log("----------------------------------------------------");                                       
-					process.exit(0);
-				}
-	
-				callBack();
-	
-			}
-		);		
+	if (_totalRecs === 0) {
+		console.log("Feature service is already empty.");
+		console.log("----------------------------------------------------");                                       
+		process.exit(0);
 	}
 
-	function doNext()
-	{
+	console.log("Removing "+_totalRecs+" records...");
+	
+	while (_objectIDs.length) {
 
-		request(
+		const postData = querystring.stringify(
 			{
-				hostname: "services.arcgis.com",
-				method: "POST",
-				port: 443,
-				uri: SERVICE_URL+"/deleteFeatures",
-				form: {
-					f:"pjson",
-					token: TOKEN,
-					objectIds: _objectIDs.splice(0, 100).join(","),
-					rollbackOnFailure:false
-				}
-			}, 
-			(error, response, body) => {
-
-				if (error) { 
-					console.log("Error in deleteFeatures request.");
-					process.exit(1);
-				}
-
-				if (!JSON.parse(body).deleteResults) {
-					console.log("Bad return from deleteFeatures.");
-					process.exit(1);
-				} else {
-					process.stdout.clearLine();  // clear current text
-					process.stdout.cursorTo(0);  // move cursor to beginning of line
-					process.stdout.write("Progress: "+(100-parseInt((_objectIDs.length/_totalRecs)*100))+"%");				
-				}
-
-				if (_objectIDs.length) {
-					doNext();
-				} else {					
-					console.log("");                    
-                    console.log("Success!");                                       
-                    console.log("----------------------------------------------------");                                       
-				}
-
+				objectIds: _objectIDs.splice(0, 100).join(","),
+				f:"pjson"
 			}
-		);	
+		);
+
+		const response = await fetch(
+			SERVICE_URL+"/deleteFeatures"+(TOKEN ? "?token="+TOKEN : ""),
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/x-www-form-urlencoded",
+					"Content-Length": postData.length
+				},
+				body: postData
+			}			
+		);
+		
+		const json = await response.json();
+		
+		if (
+			json.deleteResults &&
+			json.deleteResults.length && 
+			json.deleteResults.shift().success === true
+		) {			
+			process.stdout.clearLine();  // clear current text
+			process.stdout.cursorTo(0);  // move cursor to beginning of line
+			process.stdout.write("Progress: "+(100-parseInt((_objectIDs.length/_totalRecs)*100))+"%");				
+		} else {
+			console.log("");
+			console.log("problem with bucket.  exiting...");
+			process.exit(1);			
+		}
 
 	}
 
-}());
+	console.log("");                    
+	console.log("Success!");                                       
+	console.log("----------------------------------------------------");                                       
 
+	async function getObjectIds()  {
+        const response = await fetch(
+			SERVICE_URL+"/query"+
+            "?where="+encodeURIComponent("1=1")+
+			"&returnIdsOnly=true"+
+            "&f=pjson"+
+            (TOKEN ? "&token="+TOKEN : "")
+        );
+        const json = await response.json();
+        return json.objectIds;
+    }
+
+})().catch(err => {
+    console.error(err);
+});
