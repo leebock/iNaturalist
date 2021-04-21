@@ -19,16 +19,34 @@
     /*******************************************************************************
     *********************************** MAIN ***************************************
     *******************************************************************************/
-    
+
     const listSpecies = (await csv().fromFile(SPECIES_CSV))
-        /*.filter(function(value){return value.visited.trim().toLowerCase() === "false";})*/
-        .map(function(value){return value.species;});
+        .map(function(value){return value.species;})
+        .filter(
+            /* Note: This bit here just weeds out a couple of species that where
+                    problematic in the first run. The records corresponding to the
+                    species don't exist in the prior version of the feature service, 
+                    so those species will throw an error guaranteed.  It might be better
+                    practice to check for a null return from the feature query and skip
+                    gracefully, but I wouldn't want to camouflage a legit bad return
+                    from the featureservice. */
+            CONFIG.direction.trim().toLowerCase() === "north" ?
+            function(species) {
+                return [
+                    "arisaema quinatum", 
+                    "govenia lagenophora"
+                ].indexOf(species.trim().toLowerCase()) === -1;
+            } :
+            function (species) {
+                return species.trim().toLowerCase() !== "sarracenia purpurea";
+            }
+        );
 
     if (listSpecies.length < 1) {
         console.log("All species have been visited...");
         process.exit(-1);
     }
-        
+    
     do {
         const species = listSpecies.shift();
         
