@@ -19,7 +19,39 @@
     /*******************************************************************************
     *********************************** MAIN ***************************************
     *******************************************************************************/
-
+    
+    const progName = __filename.split("\u005c").pop();
+    const lengthRepeat = 53;
+    const spaceBuffer = parseInt((lengthRepeat - progName.length) / 2);
+    
+    console.log("\n\n");
+    console.log("*".repeat(lengthRepeat));        
+    console.log("*".repeat(lengthRepeat));        
+    console.log(" ".repeat(spaceBuffer)+chalk.green(progName));        
+    console.log("*".repeat(lengthRepeat));        
+    console.log("*".repeat(lengthRepeat));
+            
+    console.log("\n\n");
+    console.log("Clearing scratch files...");
+    
+    /* Note: As a precaution, clear out the files from the scratch directory.  In the 
+            past, sometimes inat-fetch would fail silently and this driver would keep
+            plugging along.  Since the next step after inat-fetch is to pick up the
+            resulting csv, sort, and compare edges, this program continued without 
+            a hitch IF the named csv existed.  So, if an old version of the named
+            csv was lying around, that file would get used.  This was problematic for 
+            two reason: 1) the named file was outdated; 2) it may well have represented 
+            the wrong edge (e.g. south when we're comparing north lat).  Anyhoo, I 
+            believe I have modified inat-fetch to broadcast its failure, but just in 
+            case (and because it's good hygiene), we'll clear the scratch directory. */
+    
+    const scratchFiles = await fs.readdirSync("./scratch");
+    for (const scratchFile of scratchFiles) {
+        await fs.unlinkSync("./scratch/"+scratchFile);
+    }
+    
+    console.log("Filtering for problem species...");
+    
     const listSpecies = (await csv().fromFile(SPECIES_CSV))
         .map(function(value){return value.species;})
         .filter(
@@ -47,6 +79,9 @@
         process.exit(-1);
     }
     
+    console.log("And. Here. We. GO!!!!");
+
+
     do {
         const species = listSpecies.shift();
         
