@@ -146,6 +146,8 @@
             .status !== 0
         )
         {
+            console.log("Failure in inat-fetch.");
+            console.log("Exiting "+progName+".");
             process.exit();
         }
         
