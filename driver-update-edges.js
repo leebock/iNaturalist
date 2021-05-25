@@ -153,7 +153,13 @@
         
         var _records = await csv().fromFile(SCRATCH_FILE);
         _records.sort(sortDescendingByLatitude);
-        var winner = _records.shift();
+        
+        var winner;
+        if (CONFIG.direction === "south") {
+            winner = _records.pop();
+        } else {
+            winner = _records.shift();
+        }
     
         // update according to whether new winner was found
             
