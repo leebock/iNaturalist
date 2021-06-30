@@ -148,6 +148,7 @@ function converter(result)
 		observation_id: result.id,
 		taxon_id: result.taxon ? result.taxon.id : null,
 		taxon_name: result.taxon ? result.taxon.name : null,
+		generic_name: result.taxon ? result.taxon.preferred_common_name : null,
 		quality_grade: result.quality_grade,
 		observation_date: result.observed_on,
 		observer_name: result.user ? result.user.name : null,
