@@ -34,8 +34,8 @@
 
     var _results = [];
     
-    for (var i=0; i < Math.ceil(_featureCount/2000); i++) {
-        _results = _results.concat(await getFeatures(i*2000));
+    for (var i=0; i < Math.ceil(_featureCount/1000); i++) {
+        _results = _results.concat(await getFeatures(i*1000));
         process.stdout.clearLine();  // clear current text
         process.stdout.cursorTo(0);  // move cursor to beginning of line
         process.stdout.write("Progress: "+parseInt((_results.length/_featureCount)*100)+"%");        
@@ -68,7 +68,7 @@
             "?where="+encodeURIComponent("1=1")+
             (SORT_FIELD ? "&orderByFields="+SORT_FIELD : "")+
             "&resultOffset="+offset+
-            "&resultRecordCount=2000"+            
+            "&resultRecordCount=1000"+            
             "&outFields=*"+
             "&f=pjson"+
             (TOKEN ? "&token="+TOKEN : "")
