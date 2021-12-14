@@ -1,0 +1,5 @@
+{
+  "service_read": "https://services.arcgis.com/nzS0F0zdNLvs7nc8/arcgis/rest/services/smost_v7/FeatureServer/0",
+  "service_write":"https://services.arcgis.com/nzS0F0zdNLvs7nc8/arcgis/rest/services/smost_v8_edit/FeatureServer/0",
+  "direction": "south"
+}

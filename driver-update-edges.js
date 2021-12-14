@@ -9,11 +9,11 @@
     const chalk = require('chalk');  
     const csv=require('csvtojson');
     
-    const SPECIES_CSV = "../data/species/species.csv";
+    const SPECIES_CSV = "resources/species.csv";
     const GEOMETRY_SERVICE = "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer";    
     const PLACE_ID_NORTH_AMERICA = 97394;
     
-    const CONFIG = JSON.parse(fs.readFileSync("config-edges.json")); 
+    const CONFIG = JSON.parse(fs.readFileSync("config/config-edges.json")); 
     const TOKEN = JSON.parse(fs.readFileSync("token.json")).token;
     
     /*******************************************************************************
