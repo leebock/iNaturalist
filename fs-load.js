@@ -1,10 +1,14 @@
 (async () => {
 
+	/* loads csv file into feature service.  constructs geometry by projecting
+		lat/lon values to web mercator */
+
 	"use strict";
 
 	const fetch = require("node-fetch");
 	const querystring = require("querystring");
 	const fs = require("fs");
+	const proj4 = require("proj4");
 
 	if (process.argv.length !== 4) {
 		console.log("Usage: " + __filename + " input_file service");
@@ -28,8 +32,13 @@
 
 		const bucket = _records.splice(0, 100).map(
 			function(json) {
+				const coords = proj4(
+					proj4.defs('EPSG:4326'), 
+					proj4.defs('EPSG:3857'), 
+					[parseFloat(json.lon), parseFloat(json.lat)]
+				);
 				return {
-					geometry: {x: json.x, y: json.y},
+					geometry: {x: coords[0], y: coords[1]},
 					spatialReference: {wkid: 102100},
 					attributes: json
 				};

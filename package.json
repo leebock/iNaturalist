@@ -11,7 +11,8 @@
     "chalk": "^4.1.0",
     "csvtojson": "^2.0.10",
     "json2csv": "^5.0.1",
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^2.6.1",
+    "proj4": "^2.7.5"
   },
   "devDependencies": {
     "eslint": "^7.19.0"

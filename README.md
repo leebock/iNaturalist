@@ -14,7 +14,6 @@ The utilities are:
     <li>fs-snapshot.js</li>
     <li>get-token.js</li>
     <li>inat-fetch.js</li>
-    <li>project-coords.js</li>
     <li>report-differences.js</li>
     <li>report-drops.js</li>
 </ul>

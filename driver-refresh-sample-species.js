@@ -16,7 +16,7 @@ const CONFIGS = [
 CONFIGS.forEach((config) => {
 
     console.log();
-    
+
     if (
         child_process.spawnSync(
             "node",
@@ -30,21 +30,7 @@ CONFIGS.forEach((config) => {
     }
 
     console.log();
-    
-    if (
-        child_process.spawnSync(
-            "node",
-            ["project-coords", config.csv, "scratch/temp-wm.csv"],
-            {stdio: "inherit"}
-        )
-        .status !== 0    
-    ) 
-    {
-        process.exit();
-    }
 
-    console.log();
-    
     if (
         child_process.spawnSync(
             "node",
@@ -67,7 +53,7 @@ CONFIGS.forEach((config) => {
             "node",
             [
                 "fs-load", 
-                "scratch/temp-wm.csv",
+                config.csv,
                 config.service
             ],
             {stdio: "inherit"}
