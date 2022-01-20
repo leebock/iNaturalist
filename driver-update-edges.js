@@ -8,9 +8,9 @@
     const querystring = require("querystring");  
     const chalk = require('chalk');  
     const csv=require('csvtojson');
+    const proj4 = require("proj4");
     
     const SPECIES_CSV = "resources/species.csv";
-    const GEOMETRY_SERVICE = "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer";    
     const PLACE_ID_NORTH_AMERICA = 97394;
     
     const CONFIG = JSON.parse(fs.readFileSync("config/config-edges.json")); 
@@ -173,7 +173,7 @@
             );
         } else {
             // write the new winner to the new service
-            const geometry = await project(winner.lon, winner.lat);
+            const geometry = project(winner.lon, winner.lat);
             winner.taxon_name = species;
             console.log("Updating "+CONFIG.direction+"most occurence for "+
                         chalk.cyan(winner.taxon_name)+" to "+
@@ -208,34 +208,14 @@
         return 0;
     }    
 
-    async function project(x, y)
+    function project(x,y)
     {
-    
-        var postData = {
-            inSR:4326,
-            outSR:3857,
-            geometries: JSON.stringify({
-                "geometryType":"esriGeometryPoint",
-                "geometries":[{x:x,y:y}]
-            }),
-            f:"pjson"
-        }; 
-    
-        postData = querystring.stringify(postData);
-
-        const response = await fetch(
-            GEOMETRY_SERVICE+"/project",
-            {
-                method: "POST",
-                body: postData,
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    "Content-Length": postData.length
-                }
-            }
+        const coords = proj4(
+            proj4.defs('EPSG:4326'), 
+            proj4.defs('EPSG:3857'), 
+            [parseFloat(x), parseFloat(y)]
         );
-        const json = await response.json();
-        return json.geometries.shift();
+        return {x: coords[0], y: coords[1]};
     }
 
     async function addFeature(obj)
