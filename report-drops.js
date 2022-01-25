@@ -16,8 +16,17 @@
     const FILE_OUT = process.argv[4]; //"../data/northernmost/drops.csv";
 
     const csv=require('csvtojson');
-    const _recordsOG = (await csv().fromFile(FILE_ORIG)).map(function(value){return value.taxon_name;});
-    const _recordsV2 = (await csv().fromFile(FILE_V2)).map(function(value){return value.taxon_name;});
+    
+    const _recordsOG = (
+        await csv()
+                .fromFile(FILE_ORIG))
+                .map(function(value){return value.taxon_name;}
+    );
+    const _recordsV2 = (
+        await csv()
+                .fromFile(FILE_V2))
+                .map(function(value){return value.taxon_name;}
+    );
     const _problems = _recordsOG
                         .filter((species)=>_recordsV2.indexOf(species)===-1)
                         .map((value)=>{return {"species": value}});
