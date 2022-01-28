@@ -25,5 +25,7 @@ Drivers are:
     <li>driver-update-edges.js</li>
 </ul>
 
+Workflow description can be found in this <a target="_blank" href="https://docs.google.com/document/d/1xvX1nFldvzQKAQZVu7qY7bBmpsH88Ov-Fj9XTTOOot4/edit?usp=sharing">Google Doc.</a>
+
 Repo photo by <a href="https://unsplash.com/@benjamingriffinproductions?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Benjamin Griffin</a> on <a href="https://unsplash.com/s/photos/lodgepole-pine?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
   
